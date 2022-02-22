@@ -1,4 +1,4 @@
-package com.luuo.cpen431;
+package com.g10.cpen431.a7;
 
 public enum ErrCode {
     SUCCESS(0x00), UNKNOWN_KEY(0x01), OUT_OF_SPACE(0x02), OVERLOAD(0x03),

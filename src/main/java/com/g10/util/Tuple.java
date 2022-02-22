@@ -1,4 +1,4 @@
-package com.luuo.util;
+package com.g10.util;
 
 public class Tuple<T, U> {
     public final T first;

@@ -1,7 +1,7 @@
-package com.luuo.cpen431;
+package com.g10.cpen431.a7;
 
-import com.luuo.util.ByteUtil;
-import com.luuo.util.Tuple;
+import com.g10.util.ByteUtil;
+import com.g10.util.Tuple;
 
 import java.nio.ByteBuffer;
 import java.util.List;

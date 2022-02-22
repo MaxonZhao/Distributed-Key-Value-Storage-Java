@@ -1,4 +1,4 @@
-package com.luuo.cpen431;
+package com.g10.cpen431.a7;
 
 public class ServerException extends Exception {
     private final ErrCode errCode;

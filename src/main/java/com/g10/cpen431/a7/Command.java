@@ -1,4 +1,4 @@
-package com.luuo.cpen431;
+package com.g10.cpen431.a7;
 
 public enum Command {
     PUT(0x01), GET(0x02), REMOVE(0x03), SHUTDOWN(0x04),

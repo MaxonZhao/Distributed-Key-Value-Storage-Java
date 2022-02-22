@@ -1,4 +1,4 @@
-package com.luuo.util;
+package com.g10.util;
 
 import com.google.common.primitives.Bytes;
 import com.matei.eece411.util.ByteOrder;
@@ -48,7 +48,7 @@ public class ByteUtil {
      */
     public static long getCheckSum(byte[] data) {
         CRC32 crc32 = new CRC32();
-        crc32.update(data);
+        crc32.update(data, 0, data.length);
         return crc32.getValue();
     }
 

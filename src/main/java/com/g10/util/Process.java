@@ -1,4 +1,4 @@
-package com.luuo.util;
+package com.g10.util;
 
 import java.lang.management.ManagementFactory;
 

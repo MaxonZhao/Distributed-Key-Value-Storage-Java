@@ -28,7 +28,7 @@ or (no need to build)
 - Avoid caching replies for idempotent request without breaking layering.
 
 ### Additional Tests
-There are some unit tests in `com.luuo.cpen431.ByteUtilTest` for utility functions.
+There are some unit tests in `ByteUtilTest` for utility functions.
 
 ### Source
 - Files in the package `com.matei.eece411.util` and the folder `src/main/proto` are provided by the course instructor.

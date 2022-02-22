@@ -1,4 +1,4 @@
-package com.luuo.util;
+package com.g10.util;
 
 public class Triple<T, U, V> {
     public final T first;

@@ -1,6 +1,6 @@
-package com.luuo.cpen431;
+package com.g10.cpen431.a7;
 
-import com.luuo.util.SystemUtil;
+import com.g10.util.SystemUtil;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

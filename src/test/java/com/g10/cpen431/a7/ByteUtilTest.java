@@ -1,6 +1,6 @@
-package com.luuo.cpen431;
+package com.g10.cpen431.a7;
 
-import com.luuo.util.ByteUtil;
+import com.g10.util.ByteUtil;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
