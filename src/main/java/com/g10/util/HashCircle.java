@@ -11,16 +11,16 @@ import java.util.TreeMap;
 public class HashCircle {
     // expect to get a list of servers with SocketAddress
     private static HashCircle instance;
-    private SortedMap<Integer, InetSocketAddress> nodesTreeMap;
+    private SortedMap<Long, InetSocketAddress> nodesTreeMap;
     private List<InetSocketAddress> nodes;
 
     private HashCircle() {
         nodes = NodeInfo.getNodesList();
         nodes = new LinkedList<>();
-        nodesTreeMap = new TreeMap<Integer, InetSocketAddress>();
+        nodesTreeMap = new TreeMap<Long, InetSocketAddress>();
 
         for (InetSocketAddress node : nodes) {
-            int hash = Hash.hash(node.getAddress().getAddress());
+            long hash = Hash.hash(node.getAddress().getAddress());
             nodesTreeMap.put(hash, node);
         }
     }
