@@ -80,3 +80,6 @@ task copyJarToBase(type: Copy) {
 }
 
 build.finalizedBy(copyJarToBase)
+test {
+    useJUnitPlatform()
+}
