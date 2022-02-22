@@ -70,14 +70,14 @@ public class KeyValueStorageServer implements RequestReplyApplication {
         return new Reply(response, true);
     }
 
-    private static Triple<ByteString, ByteString, Integer> extractAndCheck(
+    private static Triple<byte[], ByteString, Integer> extractAndCheck(
             KeyValueRequest.KVRequest request, boolean hasKey, boolean hasValue, boolean hasVersion)
             throws ServerException {
-        ByteString key = request.getKey();
+        byte[] key = request.getKey().toByteArray();
         ByteString value = request.getValue();
         int version = request.getVersion();
 
-        if ((hasKey && key.size() == 0) || (!hasKey && key.size() != 0) || key.size() > 32)
+        if ((hasKey && key.length == 0) || (!hasKey && key.length != 0) || key.length > 32)
             throw new ServerException(ErrCode.INVALID_KEY);
 
         if ((hasValue && value.size() == 0) || (!hasValue && value.size() != 0) || value.size() > 10000)
@@ -148,15 +148,15 @@ public class KeyValueStorageServer implements RequestReplyApplication {
             throw new ServerException(ErrCode.OUT_OF_SPACE);
         }
 
-        Triple<ByteString, ByteString, Integer> parameters =
+        Triple<byte[], ByteString, Integer> parameters =
                 extractAndCheck(request, true, true, true);
 
         logger.info(() -> String.format("PUT - Key: %s, Value: %s, Version: %d",
-                ByteUtil.bytesToHexString(parameters.first),
+                StringUtils.byteArrayToHexString(parameters.first),
                 ByteUtil.bytesToHexString(parameters.second),
                 parameters.third));
 
-        boolean success = dataModel.put(parameters.first.asReadOnlyByteBuffer(),
+        boolean success = dataModel.put(parameters.first,
                 parameters.second.asReadOnlyByteBuffer(), parameters.third);
         if (!success)
             throw new ServerException(ErrCode.OUT_OF_SPACE);
@@ -165,17 +165,17 @@ public class KeyValueStorageServer implements RequestReplyApplication {
     }
 
     private Reply handleGet(KeyValueRequest.KVRequest request) throws ServerException {
-        Triple<ByteString, ByteString, Integer> parameters =
+        Triple<byte[], ByteString, Integer> parameters =
                 extractAndCheck(request, true, false, false);
 
-        Tuple<byte[], Integer> result = dataModel.get(parameters.first.asReadOnlyByteBuffer());
+        Tuple<byte[], Integer> result = dataModel.get(parameters.first);
         if (result == null) {
             logger.info("GET - Key: {}, Value: null, Version: null",
-                    () -> ByteUtil.bytesToHexString(parameters.first));
+                    () -> StringUtils.byteArrayToHexString(parameters.first));
             throw new ServerException(ErrCode.UNKNOWN_KEY);
         } else {
             logger.info(() -> String.format("GET - Key: %s, Value: %s, Version: %d",
-                    ByteUtil.bytesToHexString(parameters.first),
+                    StringUtils.byteArrayToHexString(parameters.first),
                     StringUtils.byteArrayToHexString(result.first),
                     result.second));
         }
@@ -189,10 +189,10 @@ public class KeyValueStorageServer implements RequestReplyApplication {
     }
 
     private Reply handleRemove(KeyValueRequest.KVRequest request) throws ServerException {
-        Triple<ByteString, ByteString, Integer> parameters =
+        Triple<byte[], ByteString, Integer> parameters =
                 extractAndCheck(request, true, false, false);
 
-        boolean result = dataModel.remove(parameters.first.asReadOnlyByteBuffer());
+        boolean result = dataModel.remove(parameters.first);
         if (!result)
             throw new ServerException(ErrCode.UNKNOWN_KEY);
 
