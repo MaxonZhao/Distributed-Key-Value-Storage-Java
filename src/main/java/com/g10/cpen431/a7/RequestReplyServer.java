@@ -100,7 +100,7 @@ public class RequestReplyServer implements Closeable {
         int clientIp = message.getClientIP();
         int clientPort = message.getClientPort();
         if (clientIp == 0) {
-            clientIp = ByteOrder.beb2int(packet.getAddress().getAddress(), 0);
+            clientIp = ByteOrder.leb2int(packet.getAddress().getAddress(), 0);
             clientPort = packet.getPort();
         }
 
