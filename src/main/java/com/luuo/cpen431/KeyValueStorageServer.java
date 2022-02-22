@@ -1,0 +1,208 @@
+package com.luuo.cpen431;
+
+import ca.NetSysLab.ProtocolBuffers.KeyValueRequest;
+import ca.NetSysLab.ProtocolBuffers.KeyValueResponse;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.luuo.util.Process;
+import com.luuo.util.*;
+import com.matei.eece411.util.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+public class KeyValueStorageServer implements RequestReplyApplication {
+    private static final Logger logger = LogManager.getLogger(KeyValueStorageServer.class);
+
+    private static final int DEFAULT_PORT = 16589;
+
+    private static final Reply outOfMemoryReply = new Reply(ErrCode.OUT_OF_SPACE, true);
+    private static final Reply internalFailureReply = new Reply(ErrCode.INTERNAL_FAILURE, true);
+    private static final Reply simpleSuccess = new Reply(ErrCode.SUCCESS, false);
+
+    private final RequestReplyServer transportLayer;
+    private final KeyValueStorage dataModel;
+
+    public KeyValueStorageServer(KeyValueStorage dataModel) throws IOException {
+        this(dataModel, DEFAULT_PORT);
+    }
+
+    public KeyValueStorageServer(KeyValueStorage dataModel, int port) throws IOException {
+        this.transportLayer = new RequestReplyServer(port, this);
+        this.dataModel = dataModel;
+    }
+
+    private static void handleShutdown(KeyValueRequest.KVRequest request) throws ServerException {
+        extractAndCheck(request, false, false, false);
+
+        System.exit(0);
+        throw new RuntimeException("System.exit(0) returned.");
+    }
+
+    private static Reply handleIsAlive(KeyValueRequest.KVRequest request) throws ServerException {
+        extractAndCheck(request, false, false, false);
+
+        return simpleSuccess;
+    }
+
+    private static Reply handleGetPid(KeyValueRequest.KVRequest request) throws ServerException {
+        extractAndCheck(request, false, false, false);
+
+        int pid = Process.getProcessId();
+
+        KeyValueResponse.KVResponse response = KeyValueResponse.KVResponse.newBuilder()
+                .setErrCode(ErrCode.SUCCESS.val)
+                .setPid(pid)
+                .build();
+        return new Reply(response, true);
+    }
+
+    private static Reply handleGetMembershipCount(KeyValueRequest.KVRequest request)
+            throws ServerException {
+        extractAndCheck(request, false, false, false);
+
+        KeyValueResponse.KVResponse response = KeyValueResponse.KVResponse.newBuilder()
+                .setErrCode(ErrCode.SUCCESS.val)
+                .setMembershipCount(1)
+                .build();
+        return new Reply(response, true);
+    }
+
+    private static Triple<ByteString, ByteString, Integer> extractAndCheck(
+            KeyValueRequest.KVRequest request, boolean hasKey, boolean hasValue, boolean hasVersion)
+            throws ServerException {
+        ByteString key = request.getKey();
+        ByteString value = request.getValue();
+        int version = request.getVersion();
+
+        if ((hasKey && key.size() == 0) || (!hasKey && key.size() != 0) || key.size() > 32)
+            throw new ServerException(ErrCode.INVALID_KEY);
+
+        if ((hasValue && value.size() == 0) || (!hasValue && value.size() != 0) || value.size() > 10000)
+            throw new ServerException(ErrCode.INVALID_VALUE);
+
+        /* Version is not checked */
+
+        return new Triple<>(key, value, version);
+    }
+
+    public void run() throws IOException {
+        transportLayer.run();
+    }
+
+    public void close() {
+        transportLayer.close();
+    }
+
+    @Override
+    public Reply handleRequest(InputStream rawRequest) {
+        try {
+            KeyValueRequest.KVRequest request = KeyValueRequest.KVRequest.parseFrom(rawRequest);
+            return handleGeneralRequest(request);
+        } catch (InvalidProtocolBufferException e) {
+            logger.warn("Received an invalid request.");
+            return new Reply(ErrCode.MALFORMED_REQUEST, true);
+        } catch (ServerException e) {
+            return new Reply(e.getErrCode(), false);
+        } catch (IOException e) {
+            logger.error("IOException caught. {}", e::toString);
+            return internalFailureReply;
+        } catch (OutOfMemoryError e) {
+            logger.error("OutOfMemoryError caught. Server might fail. {}", e::toString);
+            return outOfMemoryReply;
+        } catch (RuntimeException e) {
+            logger.fatal("RuntimeException caught. Server might fail. {}", e::toString);
+            return internalFailureReply;
+        }
+    }
+
+    private Reply handleGeneralRequest(KeyValueRequest.KVRequest request) throws ServerException {
+        Command command = Command.get(request.getCommand());
+        logger.info("New command received. Command: {}", command);
+        switch (command) {
+            case PUT:
+                return handlePut(request);
+            case GET:
+                return handleGet(request);
+            case REMOVE:
+                return handleRemove(request);
+            case SHUTDOWN:
+                handleShutdown(request);
+            case WIPE_OUT:
+                return handleWipeOut(request);
+            case IS_ALIVE:
+                return handleIsAlive(request);
+            case GET_PID:
+                return handleGetPid(request);
+            case GET_MEMBERSHIP_COUNT:
+                return handleGetMembershipCount(request);
+            default:
+                throw new UnsupportedOperationException();
+        }
+    }
+
+    private Reply handlePut(KeyValueRequest.KVRequest request) throws ServerException {
+        if (SystemUtil.checkMemoryStress()) {
+            throw new ServerException(ErrCode.OUT_OF_SPACE);
+        }
+
+        Triple<ByteString, ByteString, Integer> parameters =
+                extractAndCheck(request, true, true, true);
+
+        logger.info(() -> String.format("PUT - Key: %s, Value: %s, Version: %d",
+                ByteUtil.bytesToHexString(parameters.first),
+                ByteUtil.bytesToHexString(parameters.second),
+                parameters.third));
+
+        boolean success = dataModel.put(parameters.first.asReadOnlyByteBuffer(),
+                parameters.second.asReadOnlyByteBuffer(), parameters.third);
+        if (!success)
+            throw new ServerException(ErrCode.OUT_OF_SPACE);
+
+        return simpleSuccess;
+    }
+
+    private Reply handleGet(KeyValueRequest.KVRequest request) throws ServerException {
+        Triple<ByteString, ByteString, Integer> parameters =
+                extractAndCheck(request, true, false, false);
+
+        Tuple<byte[], Integer> result = dataModel.get(parameters.first.asReadOnlyByteBuffer());
+        if (result == null) {
+            logger.info("GET - Key: {}, Value: null, Version: null",
+                    () -> ByteUtil.bytesToHexString(parameters.first));
+            throw new ServerException(ErrCode.UNKNOWN_KEY);
+        } else {
+            logger.info(() -> String.format("GET - Key: %s, Value: %s, Version: %d",
+                    ByteUtil.bytesToHexString(parameters.first),
+                    StringUtils.byteArrayToHexString(result.first),
+                    result.second));
+        }
+
+        KeyValueResponse.KVResponse response = KeyValueResponse.KVResponse.newBuilder()
+                .setErrCode(ErrCode.SUCCESS.val)
+                .setValue(ByteString.copyFrom(result.first)) // TODO: optimize
+                .setVersion(result.second)
+                .build();
+        return new Reply(response.toByteString(), true);
+    }
+
+    private Reply handleRemove(KeyValueRequest.KVRequest request) throws ServerException {
+        Triple<ByteString, ByteString, Integer> parameters =
+                extractAndCheck(request, true, false, false);
+
+        boolean result = dataModel.remove(parameters.first.asReadOnlyByteBuffer());
+        if (!result)
+            throw new ServerException(ErrCode.UNKNOWN_KEY);
+
+        return simpleSuccess;
+    }
+
+    private Reply handleWipeOut(KeyValueRequest.KVRequest request) throws ServerException {
+        extractAndCheck(request, false, false, false);
+
+        dataModel.wipeOut();
+        return simpleSuccess;
+    }
+}
