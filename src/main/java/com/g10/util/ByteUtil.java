@@ -23,6 +23,12 @@ public class ByteUtil {
         }
     }
 
+    public static byte[] int2leb(int x) {
+        byte[] result = new byte[4];
+        ByteOrder.int2leb(x, result, 0);
+        return result;
+    }
+
     /**
      * Concatenate sequences of bytes in the given order.
      *

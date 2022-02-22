@@ -1,13 +1,14 @@
 package com.g10.cpen431.a7;
 
 import ca.NetSysLab.ProtocolBuffers.Message;
+import com.g10.util.ByteUtil;
+import com.g10.util.NotificationCenter;
+import com.g10.util.SystemUtil;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.g10.util.ByteUtil;
-import com.g10.util.NotificationCenter;
-import com.g10.util.SystemUtil;
+import com.matei.eece411.util.ByteOrder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,6 +16,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.time.Duration;
 
 public class RequestReplyServer implements Closeable {
@@ -28,9 +30,11 @@ public class RequestReplyServer implements Closeable {
     private final RequestReplyApplication application;
     private final Cache<ByteString, byte[]> cache;
     private final DatagramSocket socket;
+    private final DatagramSocket routeSocket;
 
     public RequestReplyServer(int port, RequestReplyApplication application) throws IOException {
         this.socket = new DatagramSocket(port);
+        this.routeSocket = new DatagramSocket();
         this.application = application;
         this.cache = CacheBuilder.newBuilder()
                 .expireAfterWrite(TIMEOUT)
@@ -92,18 +96,47 @@ public class RequestReplyServer implements Closeable {
             return;
         }
 
-        byte[] reply = cache.getIfPresent(id);
-        if (reply == null) {
+        /* Get client address and port */
+        int clientIp = message.getClientIP();
+        int clientPort = message.getClientPort();
+        if (clientIp == 0) {
+            clientIp = ByteOrder.beb2int(packet.getAddress().getAddress(), 0);
+            clientPort = packet.getPort();
+        }
+
+        byte[] outData = cache.getIfPresent(id);
+        DatagramSocket outSocket = socket;
+        if (outData == null) {
             RequestReplyApplication.Reply respondPayload = application.handleRequest(requestPayload.newInput());
-            reply = constructResponse(id, respondPayload.reply);
-            if (!respondPayload.idempotent) {
-                cache.put(id, reply);
+            if (respondPayload.targetNode != null) {
+                /* Route to another node */
+                outData = routeRequest(id, requestPayload,
+                        clientIp, clientPort);
+                outSocket = routeSocket;
+            } else {
+                /* Send reply to client */
+                outData = constructResponse(id, respondPayload.reply);
+                if (!respondPayload.idempotent) {
+                    cache.put(id, outData);
+                }
             }
         }
 
-        packet.setData(reply);
-        socket.send(packet);
+        packet.setData(outData);
+        packet.setAddress(InetAddress.getByAddress(ByteUtil.int2leb(clientIp)));
+        outSocket.send(packet);
         logger.info("Response packet sent. {}", packet);
+    }
+
+    private byte[] routeRequest(ByteString id, ByteString payload, int clientIp, int clientPort) {
+        long responseChecksum = getCheckSum(id, payload); // include clientIp, clientPort?
+        return Message.Msg.newBuilder()
+                .setMessageID(id)
+                .setPayload(payload)
+                .setCheckSum(responseChecksum)
+                .setClientIP(clientIp)
+                .setClientPort(clientPort)
+                .build().toByteArray();
     }
 
     private byte[] constructResponse(ByteString id, ByteString payload) {
