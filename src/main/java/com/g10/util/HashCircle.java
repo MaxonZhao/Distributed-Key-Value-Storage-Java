@@ -20,7 +20,7 @@ public class HashCircle {
         nodesTreeMap = new TreeMap<Integer, InetSocketAddress>();
 
         for (InetSocketAddress node : nodes) {
-            int hash = Hash.hash(node);
+            int hash = Hash.hash(node.getAddress());
             nodesTreeMap.put(hash, node);
         }
     }
