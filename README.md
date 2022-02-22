@@ -1,8 +1,8 @@
-# CPEN431 2021 A4
+# CPEN431 2022 A7
 
 ---
-**Name:** Juntong Luo <br />
-**Student Number:** 62465273 <br />
+**Group ID:** G10 <br />
+**Verification Code:** 3655741786 <br />
 
 
 ### How to Build
@@ -28,7 +28,7 @@ or (no need to build)
 - Avoid caching replies for idempotent request without breaking layering.
 
 ### Additional Tests
-There are some unit tests in `ByteUtilTest` for utility functions.
+There are some unit tests in `com.g10.cpen431.ByteUtilTest` for utility functions.
 
 ### Source
 - Files in the package `com.matei.eece411.util` and the folder `src/main/proto` are provided by the course instructor.
