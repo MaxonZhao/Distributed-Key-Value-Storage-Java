@@ -1,12 +1,14 @@
 package com.g10.util;
-import com.sun.org.apache.xalan.internal.lib.NodeInfo;
 
-import java.net.InetAddress;
+import com.g10.util.NodeInfo;
+
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
 
 public class HashCircle {
     // expect to get a list of servers with SocketAddress
@@ -15,13 +17,28 @@ public class HashCircle {
     private List<InetSocketAddress> nodes;
 
     private HashCircle() {
-        nodes = NodeInfo.getNodesList();
-        nodes = new LinkedList<>();
-        nodesTreeMap = new TreeMap<Long, InetSocketAddress>();
 
-        for (InetSocketAddress node : nodes) {
+        nodesTreeMap = new TreeMap<Long, InetSocketAddress>();
+        generateNodesList();
+
+        for (InetSocketAddress node : this.nodes) {
             long hash = Hash.hash(node.getAddress().getAddress());
             nodesTreeMap.put(hash, node);
+        }
+    }
+
+    private void generateNodesList() {
+        NodeInfo.ServerList nodes = null;
+
+        try {
+            nodes = NodeInfo.parseNodeInfo();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for (NodeInfo.ServerInfo si: nodes.getServerInfo()) {
+            InetSocketAddress node = new InetSocketAddress(si.getIP(), si.getPort());
+            this.nodes.add(node);
         }
     }
 
