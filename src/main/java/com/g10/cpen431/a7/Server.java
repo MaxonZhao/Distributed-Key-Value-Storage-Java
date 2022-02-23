@@ -1,5 +1,6 @@
 package com.g10.cpen431.a7;
 
+import com.g10.util.NodeInfo;
 import com.g10.util.SystemUtil;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -21,7 +22,7 @@ public class Server {
         initializeNodesList(args[0]);
 
         HashtableStorage dataModel = new HashtableStorage();
-        KeyValueStorageServer server = new KeyValueStorageServer(dataModel);
+        KeyValueStorageServer server = new KeyValueStorageServer(dataModel, NodeInfo.getLocalNodeInfo().getPort());
 
         SystemUtil.init(); // FIXME: Important: Put it here because GCs should run after cache clean-ups
 

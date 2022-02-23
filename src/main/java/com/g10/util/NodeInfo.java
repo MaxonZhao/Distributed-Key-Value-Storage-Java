@@ -6,6 +6,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 
 public class NodeInfo {
@@ -42,15 +43,11 @@ public class NodeInfo {
         return mapper.readValue(file, ServerList.class);
     }
 
-    public static void initializeNodesList(String serverListPath) {
-        List<InetSocketAddress> nodes = null;
-        NodeInfo.ServerList serverList = null;
+    public static void initializeNodesList(String serverListPath) throws IOException {
+        List<InetSocketAddress> nodes = new ArrayList<>();
+        NodeInfo.ServerList serverList;
 
-        try {
-            serverList = NodeInfo.parseNodeInfo(serverListPath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        serverList = NodeInfo.parseNodeInfo(serverListPath);
 
         for (NodeInfo.ServerInfo serverInfo: serverList.getServerInfo()) {
             InetSocketAddress node = new InetSocketAddress(serverInfo.getIP(), serverInfo.getPort());
@@ -60,11 +57,11 @@ public class NodeInfo {
         NodeInfo.serverList = nodes;
     }
 
-    public static List<InetSocketAddress> getServerList(){
+    public static List<InetSocketAddress> getServerList() {
         return serverList;
     }
 
-    public static InetSocketAddress getLocalNodeInfo(){
+    public static InetSocketAddress getLocalNodeInfo() {
         return serverList.get(0);
     }
 }

@@ -39,7 +39,7 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass = 'com.luuo.cpen431.Server'
+    mainClass = 'com.g10.cpen431.a7.Server'
 
     applicationDefaultJvmArgs = ['-Xmx64m', '-Xms64m', '-Dsun.stdout.encoding=UTF-8', '-Dsun.err.encoding=UTF-8']
 }
