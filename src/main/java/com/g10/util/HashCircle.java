@@ -38,8 +38,8 @@ public class HashCircle {
         return potentialNodes.get(potentialNodes.firstKey());
     }
 
-    public boolean isDataInLocalNode(int hash) {
-        SortedMap<Integer, InetSocketAddress> potentialNodes = nodesTreeMap.tailMap(hash);
+    public boolean isDataInLocalNode(long hash) {
+        SortedMap<Long, InetSocketAddress> potentialNodes = nodesTreeMap.tailMap(hash);
         InetSocketAddress sa = potentialNodes.get(potentialNodes.firstKey());
         String foundNodeIpAddr = sa.getAddress().getHostAddress();
         int foundNodePort = sa.getPort();
