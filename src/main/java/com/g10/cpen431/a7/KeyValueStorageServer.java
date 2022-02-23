@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketAddress;
 
 public class KeyValueStorageServer implements RequestReplyApplication {
     private static final Logger logger = LogManager.getLogger(KeyValueStorageServer.class);
@@ -23,15 +24,17 @@ public class KeyValueStorageServer implements RequestReplyApplication {
     private static final Reply simpleSuccess = new Reply(ErrCode.SUCCESS, false);
 
     private final RequestReplyServer transportLayer;
+    private final HashCircle hashCircle;
     private final KeyValueStorage dataModel;
 
-    public KeyValueStorageServer(KeyValueStorage dataModel) throws IOException {
-        this(dataModel, DEFAULT_PORT);
+    public KeyValueStorageServer(String serverListPath, KeyValueStorage dataModel) throws IOException {
+        this(serverListPath, dataModel, DEFAULT_PORT);
     }
 
-    public KeyValueStorageServer(KeyValueStorage dataModel, int port) throws IOException {
+    public KeyValueStorageServer(String serverListPath, KeyValueStorage dataModel, int port) throws IOException {
         this.transportLayer = new RequestReplyServer(port, this);
         this.dataModel = dataModel;
+        this.hashCircle = HashCircle.getInstance(serverListPath);
     }
 
     private static void handleShutdown(KeyValueRequest.KVRequest request) throws ServerException {
@@ -144,12 +147,18 @@ public class KeyValueStorageServer implements RequestReplyApplication {
     }
 
     private Reply handlePut(KeyValueRequest.KVRequest request) throws ServerException {
+        Triple<byte[], ByteString, Integer> parameters =
+                extractAndCheck(request, true, true, true);
+
+        /* Check if routing is needed */
+        SocketAddress target = hashCircle.findNodeFromHash(parameters.first);
+        if (target != null) {
+            return new RequestReplyApplication.Reply(target);
+        }
+
         if (SystemUtil.checkMemoryStress()) {
             throw new ServerException(ErrCode.OUT_OF_SPACE);
         }
-
-        Triple<byte[], ByteString, Integer> parameters =
-                extractAndCheck(request, true, true, true);
 
         logger.info(() -> String.format("PUT - Key: %s, Value: %s, Version: %d",
                 StringUtils.byteArrayToHexString(parameters.first),
@@ -168,7 +177,14 @@ public class KeyValueStorageServer implements RequestReplyApplication {
         Triple<byte[], ByteString, Integer> parameters =
                 extractAndCheck(request, true, false, false);
 
+        /* Check if routing is needed */
+        SocketAddress target = hashCircle.findNodeFromHash(parameters.first);
+        if (target != null) {
+            return new RequestReplyApplication.Reply(target);
+        }
+
         Tuple<byte[], Integer> result = dataModel.get(parameters.first);
+
         if (result == null) {
             logger.info("GET - Key: {}, Value: null, Version: null",
                     () -> StringUtils.byteArrayToHexString(parameters.first));
@@ -191,6 +207,12 @@ public class KeyValueStorageServer implements RequestReplyApplication {
     private Reply handleRemove(KeyValueRequest.KVRequest request) throws ServerException {
         Triple<byte[], ByteString, Integer> parameters =
                 extractAndCheck(request, true, false, false);
+
+        /* Check if routing is needed */
+        SocketAddress target = hashCircle.findNodeFromHash(parameters.first);
+        if (target != null) {
+            return new RequestReplyApplication.Reply(target);
+        }
 
         boolean result = dataModel.remove(parameters.first);
         if (!result)
