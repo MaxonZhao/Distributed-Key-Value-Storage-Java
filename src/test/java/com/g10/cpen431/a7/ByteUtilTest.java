@@ -1,6 +1,10 @@
 package com.g10.cpen431.a7;
 
 import com.g10.util.ByteUtil;
+import com.g10.util.NodeInfo;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
 import com.g10.util.Hash;
 import org.junit.jupiter.api.Test;
 
@@ -44,6 +48,10 @@ class ByteUtilTest {
     }
 
     @Test
+    void checkNodeInfo() throws IOException {
+        NodeInfo.ServerList a = NodeInfo.parseNodeInfo();
+        System.out.println(a.toString());
+    }
     void check_hash_with_same_key() {
         Hash for_test = new Hash();
         byte[] A = ("AAAAA").getBytes(StandardCharsets.UTF_8);
