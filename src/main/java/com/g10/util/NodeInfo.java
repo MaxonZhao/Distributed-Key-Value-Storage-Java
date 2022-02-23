@@ -3,9 +3,9 @@ package com.g10.util;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.g10.cpen431.a7.Server;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.util.List;
 
 public class NodeInfo {
@@ -38,5 +38,22 @@ public class NodeInfo {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory()); // jackson databind
         mapper.findAndRegisterModules();
         return mapper.readValue(file, ServerList.class);
+    }
+
+    public static List<InetSocketAddress> generateNodesList() {
+        List<InetSocketAddress> nodes = null;
+        NodeInfo.ServerList serverList = null;
+
+        try {
+            serverList = NodeInfo.parseNodeInfo();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for (NodeInfo.ServerInfo serverInfo: serverList.getServerInfo()) {
+            InetSocketAddress node = new InetSocketAddress(serverInfo.getIP(), serverInfo.getPort());
+            nodes.add(node);
+        }
+        return nodes;
     }
 }

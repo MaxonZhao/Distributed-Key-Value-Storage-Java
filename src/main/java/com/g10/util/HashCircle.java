@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import static com.g10.util.NodeInfo.generateNodesList;
+
 
 public class HashCircle {
     // expect to get a list of servers with SocketAddress
@@ -19,26 +21,11 @@ public class HashCircle {
     private HashCircle() {
 
         nodesTreeMap = new TreeMap<Long, InetSocketAddress>();
-        generateNodesList();
-
+        nodes = generateNodesList();
+        assert this.nodes != null;
         for (InetSocketAddress node : this.nodes) {
             long hash = Hash.hash(node.getAddress().getAddress());
             nodesTreeMap.put(hash, node);
-        }
-    }
-
-    private void generateNodesList() {
-        NodeInfo.ServerList nodes = null;
-
-        try {
-            nodes = NodeInfo.parseNodeInfo();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        for (NodeInfo.ServerInfo si: nodes.getServerInfo()) {
-            InetSocketAddress node = new InetSocketAddress(si.getIP(), si.getPort());
-            this.nodes.add(node);
         }
     }
 
