@@ -21,7 +21,7 @@ public class Server {
         initializeNodesList(args[0]);
 
         HashtableStorage dataModel = new HashtableStorage();
-        KeyValueStorageServer server = new KeyValueStorageServer(args[0], dataModel);
+        KeyValueStorageServer server = new KeyValueStorageServer(dataModel);
 
         SystemUtil.init(); // FIXME: Important: Put it here because GCs should run after cache clean-ups
 

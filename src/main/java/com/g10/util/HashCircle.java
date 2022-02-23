@@ -15,7 +15,7 @@ public class HashCircle {
     private SortedMap<Long, InetSocketAddress> nodesTreeMap;
     private List<InetSocketAddress> nodes;
 
-    private HashCircle(String serverListPath) throws IOException {
+    private HashCircle() {
         nodesTreeMap = new TreeMap<>();
         nodes = getServerList();
 
@@ -25,11 +25,11 @@ public class HashCircle {
         }
     }
 
-    public static HashCircle getInstance(String serverListPath) throws IOException {
+    public static HashCircle getInstance() {
         if (instance == null) {
             synchronized (HashCircle.class) {
                 if (instance == null) {
-                    instance = new HashCircle(serverListPath);
+                    instance = new HashCircle();
                 }
             }
         }

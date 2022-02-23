@@ -27,14 +27,14 @@ public class KeyValueStorageServer implements RequestReplyApplication {
     private final HashCircle hashCircle;
     private final KeyValueStorage dataModel;
 
-    public KeyValueStorageServer(String serverListPath, KeyValueStorage dataModel) throws IOException {
-        this(serverListPath, dataModel, DEFAULT_PORT);
+    public KeyValueStorageServer(KeyValueStorage dataModel) throws IOException {
+        this(dataModel, DEFAULT_PORT);
     }
 
-    public KeyValueStorageServer(String serverListPath, KeyValueStorage dataModel, int port) throws IOException {
+    public KeyValueStorageServer(KeyValueStorage dataModel, int port) throws IOException {
         this.transportLayer = new RequestReplyServer(port, this);
         this.dataModel = dataModel;
-        this.hashCircle = HashCircle.getInstance(serverListPath);
+        this.hashCircle = HashCircle.getInstance();
     }
 
     private static void handleShutdown(KeyValueRequest.KVRequest request) throws ServerException {
