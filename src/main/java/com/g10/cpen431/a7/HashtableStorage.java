@@ -2,6 +2,7 @@ package com.g10.cpen431.a7;
 
 import com.g10.util.ByteUtil;
 import com.g10.util.Tuple;
+import com.google.common.primitives.Bytes;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -15,22 +16,22 @@ public class HashtableStorage implements KeyValueStorage {
     }
 
     @Override
-    public boolean put(ByteBuffer key, ByteBuffer value, int version) {
-        List<Byte> mapKey = ByteUtil.copyToList(key);
+    public boolean put(byte[] key, ByteBuffer value, int version) {
+        List<Byte> mapKey = Bytes.asList(key);
         Tuple<byte[], Integer> mapValue = new Tuple<>(ByteUtil.copyToByteArray(value), version);
         map.put(mapKey, mapValue);
         return true;
     }
 
     @Override
-    public Tuple<byte[], Integer> get(ByteBuffer key) {
-        List<Byte> mapKey = ByteUtil.copyToList(key);
+    public Tuple<byte[], Integer> get(byte[] key) {
+        List<Byte> mapKey = Bytes.asList(key);
         return map.get(mapKey);
     }
 
     @Override
-    public boolean remove(ByteBuffer key) {
-        List<Byte> mapKey = ByteUtil.copyToList(key);
+    public boolean remove(byte[] key) {
+        List<Byte> mapKey = Bytes.asList(key);
         return map.remove(mapKey) != null;
     }
 
