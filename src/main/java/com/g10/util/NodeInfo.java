@@ -11,6 +11,7 @@ import java.util.List;
 
 public class NodeInfo {
     private static List<InetSocketAddress> serverList;
+    private static InetSocketAddress self;
 
     public static class ServerList {
         @JsonProperty
@@ -43,7 +44,7 @@ public class NodeInfo {
         return mapper.readValue(file, ServerList.class);
     }
 
-    public static void initializeNodesList(String serverListPath) throws IOException {
+    public static void initializeNodesList(String serverListPath, int selfIndex) throws IOException {
         List<InetSocketAddress> nodes = new ArrayList<>();
         NodeInfo.ServerList serverList;
 
@@ -55,6 +56,7 @@ public class NodeInfo {
         }
 
         NodeInfo.serverList = nodes;
+        NodeInfo.self = nodes.get(selfIndex);
     }
 
     public static List<InetSocketAddress> getServerList() {
@@ -62,6 +64,6 @@ public class NodeInfo {
     }
 
     public static InetSocketAddress getLocalNodeInfo() {
-        return serverList.get(0);
+        return self;
     }
 }

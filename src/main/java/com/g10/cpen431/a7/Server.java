@@ -19,7 +19,7 @@ public class Server {
         System.out.println("Max Memory: " + Runtime.getRuntime().maxMemory());
 
         Configurator.setRootLevel(Level.WARN);
-        initializeNodesList(args[0]);
+        initializeNodesList(args[0], Integer.parseInt(args[1]));
 
         HashtableStorage dataModel = new HashtableStorage();
         KeyValueStorageServer server = new KeyValueStorageServer(dataModel, NodeInfo.getLocalNodeInfo().getPort());
