@@ -25,29 +25,31 @@ public class HashCircle {
         }
     }
 
-    public InetSocketAddress findNodeFromHash(int hash) {
+    public InetSocketAddress findNodeFromHash(byte[] key) {
+        InetSocketAddress foundNodeAddr = null;
+        long hash = Hash.hash(key);
         // get all possible(greater hash value) nodes given the hash value
-        SortedMap<Integer, InetSocketAddress> potentialNodes = nodesTreeMap.tailMap(hash);
+        SortedMap<Long, InetSocketAddress> potentialNodes = nodesTreeMap.tailMap(hash);
 
         // there is no nodes greater than the given hash value in hash circle
         if (potentialNodes.isEmpty()) {
-            // return the first node from the hash value in the hash circle space clockwise
-            return nodesTreeMap.get(nodesTreeMap.firstKey());
+            // fetch first node from the hash value in the hash circle space clockwise
+             foundNodeAddr = nodesTreeMap.get(nodesTreeMap.firstKey());
+        } else {
+            foundNodeAddr = potentialNodes.get(potentialNodes.firstKey());
         }
 
-        return potentialNodes.get(potentialNodes.firstKey());
-    }
-
-    public boolean isDataInLocalNode(long hash) {
-        SortedMap<Long, InetSocketAddress> potentialNodes = nodesTreeMap.tailMap(hash);
-        InetSocketAddress sa = potentialNodes.get(potentialNodes.firstKey());
-        String foundNodeIpAddr = sa.getAddress().getHostAddress();
-        int foundNodePort = sa.getPort();
+        String foundNodeIpAddr = foundNodeAddr.getAddress().getHostAddress();
+        int foundNodePort = foundNodeAddr.getPort();
         String localNodeIpAddr = NodeInfo.getLocalNodeInfo.getAddress().getHostAddress();
         int localNodePort = NodeInfogetLocalNodeInfo.getPort();
 
-        return foundNodeIpAddr.equals(localNodeIpAddr) && foundNodePort == localNodePort;
+        // requested data is in local node
+        if (foundNodeIpAddr.equals(localNodeIpAddr) && foundNodePort == localNodePort) return null;
+        return foundNodeAddr;
     }
+
+
 
     public static HashCircle getInstance() {
         if (instance == null) {
