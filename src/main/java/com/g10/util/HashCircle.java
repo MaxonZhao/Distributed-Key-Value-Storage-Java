@@ -14,8 +14,8 @@ public class HashCircle {
     private List<InetSocketAddress> nodes;
 
     private HashCircle(String serverListPath) throws IOException {
-        nodesTreeMap = new TreeMap<Long, InetSocketAddress>();
-        generateNodesList();
+        nodesTreeMap = new TreeMap<>();
+        generateNodesList(serverListPath);
 
         for (InetSocketAddress node : this.nodes) {
             long hash = Hash.hash(node.getAddress().getAddress());
@@ -34,14 +34,8 @@ public class HashCircle {
         return instance;
     }
 
-    private void generateNodesList() {
-        NodeInfo.ServerList nodes = null;
-
-        try {
-            nodes = NodeInfo.parseNodeInfo();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private void generateNodesList(String serverListPath) throws IOException {
+        NodeInfo.ServerList nodes = NodeInfo.parseNodeInfo(serverListPath);
 
         for (NodeInfo.ServerInfo si : nodes.getServerInfo()) {
             InetSocketAddress node = new InetSocketAddress(si.getIP(), si.getPort());
@@ -73,16 +67,5 @@ public class HashCircle {
         // requested data is in local node
         if (foundNodeIpAddr.equals(localNodeIpAddr) && foundNodePort == localNodePort) return null;
         return foundNodeAddr;
-    }
-
-    public static HashCircle getInstance() {
-        if (instance == null) {
-            synchronized (HashCircle.class) {
-                if (instance == null) {
-                    instance = new HashCircle();
-                }
-            }
-        }
-        return instance;
     }
 }
