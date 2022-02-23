@@ -42,6 +42,8 @@ public class HashCircle {
         }
     }
 
+    // return: null if the requested data is in local node
+    // return: the socket of the node that contains the requested data as InetSocketAddress
     public InetSocketAddress findNodeFromHash(byte[] key) {
         InetSocketAddress foundNodeAddr = null;
         long hash = Hash.hash(key);
