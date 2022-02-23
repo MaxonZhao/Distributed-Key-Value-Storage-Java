@@ -1,6 +1,5 @@
 package com.g10.util;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.SortedMap;
@@ -20,7 +19,7 @@ public class HashCircle {
         nodes = getServerList();
 
         for (InetSocketAddress node : this.nodes) {
-            long hash = Hash.hash(node.getAddress().getAddress());
+            long hash = Hash.hash(ByteUtil.concat(node.getAddress().getAddress(), ByteUtil.int2leb(node.getPort())));
             nodesTreeMap.put(hash, node);
         }
     }
