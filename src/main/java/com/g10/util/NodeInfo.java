@@ -9,6 +9,8 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 public class NodeInfo {
+    private static List<InetSocketAddress> serverList;
+
     public static class ServerList {
         @JsonProperty
         List<ServerInfo> serverInfo;
@@ -40,12 +42,12 @@ public class NodeInfo {
         return mapper.readValue(file, ServerList.class);
     }
 
-    public static List<InetSocketAddress> generateNodesList() {
+    public static void initializeNodesList(String serverListPath) {
         List<InetSocketAddress> nodes = null;
         NodeInfo.ServerList serverList = null;
 
         try {
-            serverList = NodeInfo.parseNodeInfo();
+            serverList = NodeInfo.parseNodeInfo(serverListPath);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -54,6 +56,15 @@ public class NodeInfo {
             InetSocketAddress node = new InetSocketAddress(serverInfo.getIP(), serverInfo.getPort());
             nodes.add(node);
         }
-        return nodes;
+
+        NodeInfo.serverList = nodes;
+    }
+
+    public static List<InetSocketAddress> getServerList(){
+        return serverList;
+    }
+
+    public static InetSocketAddress getLocalNodeInfo(){
+        return serverList.get(0);
     }
 }

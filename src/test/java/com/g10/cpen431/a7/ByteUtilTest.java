@@ -49,7 +49,7 @@ class ByteUtilTest {
 
     @Test
     void checkNodeInfo() throws IOException {
-        NodeInfo.ServerList a = NodeInfo.parseNodeInfo();
+        NodeInfo.ServerList a = NodeInfo.parseNodeInfo("src/main/java/com/g10/util/serverList.yml");
         System.out.println(a.toString());
     }
     void check_hash_with_same_key() {

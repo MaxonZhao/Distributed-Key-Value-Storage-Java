@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import static com.g10.util.NodeInfo.generateNodesList;
-
+import static com.g10.util.NodeInfo.getLocalNodeInfo;
+import static com.g10.util.NodeInfo.getServerList;
 
 public class HashCircle {
     // expect to get a list of servers with SocketAddress
@@ -17,7 +17,7 @@ public class HashCircle {
 
     private HashCircle(String serverListPath) throws IOException {
         nodesTreeMap = new TreeMap<>();
-        generateNodesList(serverListPath);
+        nodes = getServerList();
 
         for (InetSocketAddress node : this.nodes) {
             long hash = Hash.hash(node.getAddress().getAddress());
@@ -34,15 +34,6 @@ public class HashCircle {
             }
         }
         return instance;
-    }
-
-    private void generateNodesList(String serverListPath) throws IOException {
-        NodeInfo.ServerList nodes = NodeInfo.parseNodeInfo(serverListPath);
-
-        for (NodeInfo.ServerInfo si : nodes.getServerInfo()) {
-            InetSocketAddress node = new InetSocketAddress(si.getIP(), si.getPort());
-            this.nodes.add(node);
-        }
     }
 
     // return: null if the requested data is in local node
@@ -63,8 +54,8 @@ public class HashCircle {
 
         String foundNodeIpAddr = foundNodeAddr.getAddress().getHostAddress();
         int foundNodePort = foundNodeAddr.getPort();
-        String localNodeIpAddr = NodeInfo.getLocalNodeInfo.getAddress().getHostAddress();
-        int localNodePort = NodeInfogetLocalNodeInfo.getPort();
+        String localNodeIpAddr = getLocalNodeInfo().getAddress().getHostAddress();
+        int localNodePort = getLocalNodeInfo().getPort();
 
         // requested data is in local node
         if (foundNodeIpAddr.equals(localNodeIpAddr) && foundNodePort == localNodePort) return null;

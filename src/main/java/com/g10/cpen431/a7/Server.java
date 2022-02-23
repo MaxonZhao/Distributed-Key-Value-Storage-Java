@@ -8,6 +8,8 @@ import org.apache.logging.log4j.core.config.Configurator;
 
 import java.io.IOException;
 
+import static com.g10.util.NodeInfo.initializeNodesList;
+
 public class Server {
     private static final Logger logger = LogManager.getLogger(Server.class);
 
@@ -16,6 +18,7 @@ public class Server {
         System.out.println("Max Memory: " + Runtime.getRuntime().maxMemory());
 
         Configurator.setRootLevel(Level.WARN);
+        initializeNodesList(args[0]);
 
         HashtableStorage dataModel = new HashtableStorage();
         KeyValueStorageServer server = new KeyValueStorageServer(args[0], dataModel);
