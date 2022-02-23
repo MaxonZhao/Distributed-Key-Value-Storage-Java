@@ -20,6 +20,7 @@ public class HashCircle {
 
         for (InetSocketAddress node : this.nodes) {
             long hash = Hash.hash(ByteUtil.concat(node.getAddress().getAddress(), ByteUtil.int2leb(node.getPort())));
+            // TODO: check duplicate Hash
             nodesTreeMap.put(hash, node);
         }
     }
