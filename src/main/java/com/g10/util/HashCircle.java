@@ -1,10 +1,7 @@
 package com.g10.util;
 
-import com.g10.util.NodeInfo;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -18,17 +15,38 @@ public class HashCircle {
     private SortedMap<Long, InetSocketAddress> nodesTreeMap;
     private List<InetSocketAddress> nodes;
 
-    private HashCircle() {
+    private HashCircle(String serverListPath) throws IOException {
+        nodesTreeMap = new TreeMap<>();
+        generateNodesList(serverListPath);
 
-        nodesTreeMap = new TreeMap<Long, InetSocketAddress>();
-        nodes = generateNodesList();
-        assert this.nodes != null;
         for (InetSocketAddress node : this.nodes) {
             long hash = Hash.hash(node.getAddress().getAddress());
             nodesTreeMap.put(hash, node);
         }
     }
 
+    public static HashCircle getInstance(String serverListPath) throws IOException {
+        if (instance == null) {
+            synchronized (HashCircle.class) {
+                if (instance == null) {
+                    instance = new HashCircle(serverListPath);
+                }
+            }
+        }
+        return instance;
+    }
+
+    private void generateNodesList(String serverListPath) throws IOException {
+        NodeInfo.ServerList nodes = NodeInfo.parseNodeInfo(serverListPath);
+
+        for (NodeInfo.ServerInfo si : nodes.getServerInfo()) {
+            InetSocketAddress node = new InetSocketAddress(si.getIP(), si.getPort());
+            this.nodes.add(node);
+        }
+    }
+
+    // return: null if the requested data is in local node
+    // return: the socket of the node that contains the requested data as InetSocketAddress
     public InetSocketAddress findNodeFromHash(byte[] key) {
         InetSocketAddress foundNodeAddr = null;
         long hash = Hash.hash(key);
@@ -38,7 +56,7 @@ public class HashCircle {
         // there is no nodes greater than the given hash value in hash circle
         if (potentialNodes.isEmpty()) {
             // fetch first node from the hash value in the hash circle space clockwise
-             foundNodeAddr = nodesTreeMap.get(nodesTreeMap.firstKey());
+            foundNodeAddr = nodesTreeMap.get(nodesTreeMap.firstKey());
         } else {
             foundNodeAddr = potentialNodes.get(potentialNodes.firstKey());
         }
@@ -51,18 +69,5 @@ public class HashCircle {
         // requested data is in local node
         if (foundNodeIpAddr.equals(localNodeIpAddr) && foundNodePort == localNodePort) return null;
         return foundNodeAddr;
-    }
-
-
-
-    public static HashCircle getInstance() {
-        if (instance == null) {
-            synchronized (HashCircle.class) {
-                if (instance == null) {
-                    instance = new HashCircle();
-                }
-            }
-        }
-        return instance;
     }
 }
