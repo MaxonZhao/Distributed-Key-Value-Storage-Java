@@ -3,7 +3,6 @@ package com.g10.util;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.matei.eece411.util.ByteOrder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -17,7 +16,6 @@ public class NodeInfo {
     private static final Logger logger = LogManager.getLogger(NodeInfo.class);
     private static List<InetSocketAddress> serverList;
     private static InetSocketAddress self;
-    private static int clientNodeAddress;
 
     public static class ServerList {
         @JsonProperty
@@ -59,12 +57,6 @@ public class NodeInfo {
         for (NodeInfo.ServerInfo serverInfo : serverList.getServerInfo()) {
             InetSocketAddress node = new InetSocketAddress(serverInfo.getIP(), serverInfo.getPort());
             nodes.add(node);
-            if (serverInfo.getPort() == 43100) {
-                if (clientNodeAddress != 0) {
-                    logger.fatal("clientNodeAddress not null");
-                }
-                clientNodeAddress = ByteOrder.leb2int(node.getAddress().getAddress(), 0);
-            }
         }
 
         NodeInfo.serverList = nodes;
@@ -79,9 +71,5 @@ public class NodeInfo {
 
     public static InetSocketAddress getLocalNodeInfo() {
         return self;
-    }
-
-    public static int getClientNodeAddress() {
-        return clientNodeAddress;
     }
 }
