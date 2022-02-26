@@ -2,7 +2,7 @@ package com.g10.cpen431.a7;
 
 import ca.NetSysLab.ProtocolBuffers.Message;
 import com.g10.util.ByteUtil;
-import com.g10.util.NotificationCenter;
+import com.g10.util.MemoryManager;
 import com.g10.util.SystemUtil;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -42,9 +42,9 @@ public class RequestReplyServer implements Closeable {
                 .build();
         /* don't use max size of weight */ // TODO: explain
 
-        NotificationCenter.subscribeMemoryStress(this.cache::cleanUp);
+        MemoryManager.subscribeMemoryStress(this.cache::cleanUp);
 
-        logger.info("RequestReplyServer initialized. Socket bound to port {}", port);
+        logger.trace("RequestReplyServer initialized. Socket bound to port {}", port);
     }
 
     public void run() throws IOException {
@@ -55,16 +55,16 @@ public class RequestReplyServer implements Closeable {
             processPacket(packet);
             packet.setData(receiveBuffer);
         }
-        logger.info("Socket is closed.");
+        logger.trace("Socket is closed.");
     }
 
     public void close() {
-        logger.info("Closing socket.");
+        logger.trace("Closing socket.");
         serverSocket.close();
     }
 
     private void processPacket(DatagramPacket packet) throws IOException {
-        logger.info("Processing packet: {}", packet);
+        logger.trace("Processing packet: {}", packet);
         Message.Msg message;
         try {
             message = Message.Msg.PARSER.parseFrom(packet.getData(), 0, packet.getLength());
@@ -77,7 +77,7 @@ public class RequestReplyServer implements Closeable {
         ByteString requestPayload = message.getPayload();
         long checksum = message.getCheckSum();
 
-        logger.info("Packet has id: {}", () -> ByteUtil.bytesToHexString(id));
+        logger.trace("Packet has id: {}", () -> ByteUtil.bytesToHexString(id));
 
         /* Check id and requestPayload sizes */
         if (id.size() != ID_SIZE) {
@@ -129,7 +129,7 @@ public class RequestReplyServer implements Closeable {
 
         packet.setData(outData);
         outSocket.send(packet);
-        logger.info("Response packet sent. {}", packet);
+        logger.trace("Packet sent. {}", packet);
     }
 
     private byte[] constructRouteRequest(ByteString id, ByteString payload, int clientIp, int clientPort) {

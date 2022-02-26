@@ -49,9 +49,10 @@ class ByteUtilTest {
 
     @Test
     void checkNodeInfo() throws IOException {
-        NodeInfo.ServerList a = NodeInfo.parseNodeInfo("src/main/java/com/g10/util/serverList.yml");
+        NodeInfo.ServerList a = NodeInfo.parseNodeInfo("src/test/resources/testServerList.yml");
         System.out.println(a.toString());
     }
+
     void check_hash_with_same_key() {
         Hash for_test = new Hash();
         byte[] A = ("AAAAA").getBytes(StandardCharsets.UTF_8);
