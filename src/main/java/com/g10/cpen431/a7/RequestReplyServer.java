@@ -3,6 +3,7 @@ package com.g10.cpen431.a7;
 import ca.NetSysLab.ProtocolBuffers.Message;
 import com.g10.util.ByteUtil;
 import com.g10.util.MemoryManager;
+import com.g10.util.NodeInfo;
 import com.g10.util.SystemUtil;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -105,8 +106,12 @@ public class RequestReplyServer implements Closeable {
             packet.setPort(clientPort);
         } else {
             /* Client not specified in the message, get it from the packet */
-            clientIp = ByteOrder.leb2int(packet.getAddress().getAddress(), 0);
             clientPort = packet.getPort();
+            if (clientPort != 43100) {
+                clientIp = ByteOrder.leb2int(packet.getAddress().getAddress(), 0);
+            } else {
+                clientIp = NodeInfo.getClientNodeAddress();
+            }
         }
 
         byte[] outData = cache.getIfPresent(id);
