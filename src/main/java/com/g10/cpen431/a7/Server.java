@@ -1,36 +1,37 @@
 package com.g10.cpen431.a7;
 
+import com.g10.util.LoggerConfiguration;
+import com.g10.util.MemoryManager;
+import com.g10.util.NodeInfo;
 import com.g10.util.SystemUtil;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.Configurator;
 
 import java.io.IOException;
 
+import static com.g10.util.NodeInfo.initializeNodesList;
+
 public class Server {
-    private static final Logger logger = LogManager.getLogger(Server.class);
+    private static Logger logger;
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        System.out.println("Program started.");
-        System.out.println("Max Memory: " + Runtime.getRuntime().maxMemory());
+        initializeLogger(args[1]);
+        MemoryManager.guardMemoryLimit();
 
-        Configurator.setRootLevel(Level.WARN);
+        initializeNodesList(args[0], Integer.parseInt(args[1]));
 
         HashtableStorage dataModel = new HashtableStorage();
-        KeyValueStorageServer server = new KeyValueStorageServer(dataModel);
+        KeyValueStorageServer server = new KeyValueStorageServer(dataModel, NodeInfo.getLocalNodeInfo().getPort());
 
-        SystemUtil.init(); // FIXME: Important: Put it here because GCs should run after cache clean-ups
+        int numberOfThreads = SystemUtil.concurrencyLevel();
+        logger.info("Starting {} threads", numberOfThreads);
 
-        int n_threads = SystemUtil.concurrencyLevel();
-        System.out.println(n_threads + " threads.");
-
-        Thread[] threads = new Thread[n_threads];
-        for (int i = 0; i < n_threads; i++) {
+        Thread[] threads = new Thread[numberOfThreads];
+        for (int i = 0; i < numberOfThreads; i++) {
             threads[i] = new Thread(() -> run(server));
             threads[i].start();
         }
-        for (int i = 0; i < n_threads; i++) {
+        for (int i = 0; i < numberOfThreads; i++) {
             threads[i].join();
         }
     }
@@ -41,5 +42,11 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static void initializeLogger(String label) {
+        LoggerConfiguration.initialize(String.format("logs/server-%s.log", label));
+        logger = LogManager.getLogger(Server.class);
+        logger.always().log("Logger initialized.");
     }
 }

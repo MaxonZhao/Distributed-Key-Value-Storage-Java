@@ -3,30 +3,27 @@ package com.g10.util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.management.ManagementFactory;
+
 public class SystemUtil {
     private static final Logger logger = LogManager.getLogger(SystemUtil.class);
-    private static final Runtime runtime = Runtime.getRuntime();
-
-    private static final long MIN_HEAP_FREE = (long)(3.5 * 1024 * 1024); /* 3.5 MB */
-
-    public static void init() {
-        NotificationCenter.subscribeMemoryStress(runtime::gc);
-    }
-
-    public static boolean checkMemoryStress() {
-        if (runtime.freeMemory() >= MIN_HEAP_FREE) {
-            return false;
-        }
-        NotificationCenter.pushMemoryStressEvent();
-        long freeMemory = runtime.freeMemory();
-        if (freeMemory < MIN_HEAP_FREE) {
-            logger.warn("Out of space even after GC. {} B < {} B", freeMemory, MIN_HEAP_FREE);
-            return true;
-        }
-        return false;
-    }
+    private static final int pid = getCurrentProcessId();
 
     public static int concurrencyLevel() {
-        return runtime.availableProcessors(); // TODO: try different levels
+        return Runtime.getRuntime().availableProcessors(); // TODO: try different levels
+    }
+
+    public static int getProcessId() {
+        return pid;
+    }
+
+    /**
+     * Obtain the current Process ID. This method is adapted from https://stackoverflow.com/a/43399977.
+     *
+     * @return the current Process ID.
+     */
+    private static int getCurrentProcessId() {
+        String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+        return Integer.parseInt(pid);
     }
 }

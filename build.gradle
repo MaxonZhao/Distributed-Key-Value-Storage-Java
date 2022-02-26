@@ -34,11 +34,12 @@ dependencies {
     // Use JUnit Jupiter for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.1'
 }
 
 application {
     // Define the main class for the application.
-    mainClass = 'com.luuo.cpen431.Server'
+    mainClass = 'com.g10.cpen431.a7.Server'
 
     applicationDefaultJvmArgs = ['-Xmx64m', '-Xms64m', '-Dsun.stdout.encoding=UTF-8', '-Dsun.err.encoding=UTF-8']
 }
@@ -64,7 +65,7 @@ jar {
 
     //noinspection GroovyAssignabilityCheck
     manifest {
-        attributes "Main-Class": application.mainClassName
+        attributes "Main-Class": application.mainClass
     }
 
     /* Create fat jar */
@@ -80,3 +81,6 @@ task copyJarToBase(type: Copy) {
 }
 
 build.finalizedBy(copyJarToBase)
+test {
+    useJUnitPlatform()
+}

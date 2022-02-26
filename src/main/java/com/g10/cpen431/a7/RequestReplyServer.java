@@ -1,13 +1,14 @@
 package com.g10.cpen431.a7;
 
 import ca.NetSysLab.ProtocolBuffers.Message;
+import com.g10.util.ByteUtil;
+import com.g10.util.MemoryManager;
+import com.g10.util.SystemUtil;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.g10.util.ByteUtil;
-import com.g10.util.NotificationCenter;
-import com.g10.util.SystemUtil;
+import com.matei.eece411.util.ByteOrder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,6 +16,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.time.Duration;
 
 public class RequestReplyServer implements Closeable {
@@ -27,10 +29,12 @@ public class RequestReplyServer implements Closeable {
 
     private final RequestReplyApplication application;
     private final Cache<ByteString, byte[]> cache;
-    private final DatagramSocket socket;
+    private final DatagramSocket serverSocket;
+    private final DatagramSocket routeSocket;
 
     public RequestReplyServer(int port, RequestReplyApplication application) throws IOException {
-        this.socket = new DatagramSocket(port);
+        this.serverSocket = new DatagramSocket(port);
+        this.routeSocket = new DatagramSocket();
         this.application = application;
         this.cache = CacheBuilder.newBuilder()
                 .expireAfterWrite(TIMEOUT)
@@ -38,29 +42,29 @@ public class RequestReplyServer implements Closeable {
                 .build();
         /* don't use max size of weight */ // TODO: explain
 
-        NotificationCenter.subscribeMemoryStress(this.cache::cleanUp);
+        MemoryManager.subscribeMemoryStress(this.cache::cleanUp);
 
-        logger.info("RequestReplyServer initialized. Socket bound to port {}", port);
+        logger.trace("RequestReplyServer initialized. Socket bound to port {}", port);
     }
 
     public void run() throws IOException {
         byte[] receiveBuffer = new byte[MAX_PACKET_SIZE];
         DatagramPacket packet = new DatagramPacket(receiveBuffer, MAX_PACKET_SIZE);
-        while (!socket.isClosed()) {
-            socket.receive(packet);
+        while (!serverSocket.isClosed()) {
+            serverSocket.receive(packet);
             processPacket(packet);
             packet.setData(receiveBuffer);
         }
-        logger.info("Socket is closed.");
+        logger.trace("Socket is closed.");
     }
 
     public void close() {
-        logger.info("Closing socket.");
-        socket.close();
+        logger.trace("Closing socket.");
+        serverSocket.close();
     }
 
     private void processPacket(DatagramPacket packet) throws IOException {
-        logger.info("Processing packet: {}", packet);
+        logger.trace("Processing packet: {}", packet);
         Message.Msg message;
         try {
             message = Message.Msg.PARSER.parseFrom(packet.getData(), 0, packet.getLength());
@@ -73,7 +77,7 @@ public class RequestReplyServer implements Closeable {
         ByteString requestPayload = message.getPayload();
         long checksum = message.getCheckSum();
 
-        logger.info("Packet has id: {}", () -> ByteUtil.bytesToHexString(id));
+        logger.trace("Packet has id: {}", () -> ByteUtil.bytesToHexString(id));
 
         /* Check id and requestPayload sizes */
         if (id.size() != ID_SIZE) {
@@ -92,21 +96,54 @@ public class RequestReplyServer implements Closeable {
             return;
         }
 
-        byte[] reply = cache.getIfPresent(id);
-        if (reply == null) {
+        /* Get client address and port, and update packet's address and port */
+        int clientIp = message.getClientIP();
+        int clientPort = message.getClientPort();
+        if (clientIp != 0) {
+            /* Client specified in the message, update the packet's address */
+            packet.setAddress(InetAddress.getByAddress(ByteUtil.int2leb(clientIp)));
+            packet.setPort(clientPort);
+        } else {
+            /* Client not specified in the message, get it from the packet */
+            clientIp = ByteOrder.leb2int(packet.getAddress().getAddress(), 0);
+            clientPort = packet.getPort();
+        }
+
+        byte[] outData = cache.getIfPresent(id);
+        DatagramSocket outSocket = serverSocket;
+        if (outData == null) {
             RequestReplyApplication.Reply respondPayload = application.handleRequest(requestPayload.newInput());
-            reply = constructResponse(id, respondPayload.reply);
-            if (!respondPayload.idempotent) {
-                cache.put(id, reply);
+            if (respondPayload.targetNode != null) {
+                /* Route to another node */
+                outData = constructRouteRequest(id, requestPayload, clientIp, clientPort);
+                outSocket = routeSocket;
+                packet.setSocketAddress(respondPayload.targetNode);
+            } else {
+                /* Send reply to client */
+                outData = constructClientResponse(id, respondPayload.reply);
+                if (!respondPayload.idempotent) {
+                    cache.put(id, outData);
+                }
             }
         }
 
-        packet.setData(reply);
-        socket.send(packet);
-        logger.info("Response packet sent. {}", packet);
+        packet.setData(outData);
+        outSocket.send(packet);
+        logger.trace("Packet sent. {}", packet);
     }
 
-    private byte[] constructResponse(ByteString id, ByteString payload) {
+    private byte[] constructRouteRequest(ByteString id, ByteString payload, int clientIp, int clientPort) {
+        long responseChecksum = getCheckSum(id, payload); // include clientIp, clientPort?
+        return Message.Msg.newBuilder()
+                .setMessageID(id)
+                .setPayload(payload)
+                .setCheckSum(responseChecksum)
+                .setClientIP(clientIp)
+                .setClientPort(clientPort)
+                .build().toByteArray();
+    }
+
+    private byte[] constructClientResponse(ByteString id, ByteString payload) {
         long responseChecksum = getCheckSum(id, payload);
         return Message.Msg.newBuilder()
                 .setMessageID(id)

@@ -3,7 +3,6 @@ package com.g10.cpen431.a7;
 import ca.NetSysLab.ProtocolBuffers.KeyValueRequest;
 import ca.NetSysLab.ProtocolBuffers.KeyValueResponse;
 import com.g10.util.*;
-import com.g10.util.Process;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.matei.eece411.util.StringUtils;
@@ -12,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketAddress;
 
 public class KeyValueStorageServer implements RequestReplyApplication {
     private static final Logger logger = LogManager.getLogger(KeyValueStorageServer.class);
@@ -23,6 +23,7 @@ public class KeyValueStorageServer implements RequestReplyApplication {
     private static final Reply simpleSuccess = new Reply(ErrCode.SUCCESS, false);
 
     private final RequestReplyServer transportLayer;
+    private final HashCircle hashCircle;
     private final KeyValueStorage dataModel;
 
     public KeyValueStorageServer(KeyValueStorage dataModel) throws IOException {
@@ -32,6 +33,7 @@ public class KeyValueStorageServer implements RequestReplyApplication {
     public KeyValueStorageServer(KeyValueStorage dataModel, int port) throws IOException {
         this.transportLayer = new RequestReplyServer(port, this);
         this.dataModel = dataModel;
+        this.hashCircle = HashCircle.getInstance();
     }
 
     private static void handleShutdown(KeyValueRequest.KVRequest request) throws ServerException {
@@ -50,7 +52,7 @@ public class KeyValueStorageServer implements RequestReplyApplication {
     private static Reply handleGetPid(KeyValueRequest.KVRequest request) throws ServerException {
         extractAndCheck(request, false, false, false);
 
-        int pid = Process.getProcessId();
+        int pid = SystemUtil.getProcessId();
 
         KeyValueResponse.KVResponse response = KeyValueResponse.KVResponse.newBuilder()
                 .setErrCode(ErrCode.SUCCESS.val)
@@ -70,14 +72,14 @@ public class KeyValueStorageServer implements RequestReplyApplication {
         return new Reply(response, true);
     }
 
-    private static Triple<ByteString, ByteString, Integer> extractAndCheck(
+    private static Triple<byte[], ByteString, Integer> extractAndCheck(
             KeyValueRequest.KVRequest request, boolean hasKey, boolean hasValue, boolean hasVersion)
             throws ServerException {
-        ByteString key = request.getKey();
+        byte[] key = request.getKey().toByteArray();
         ByteString value = request.getValue();
         int version = request.getVersion();
 
-        if ((hasKey && key.size() == 0) || (!hasKey && key.size() != 0) || key.size() > 32)
+        if ((hasKey && key.length == 0) || (!hasKey && key.length != 0) || key.length > 32)
             throw new ServerException(ErrCode.INVALID_KEY);
 
         if ((hasValue && value.size() == 0) || (!hasValue && value.size() != 0) || value.size() > 10000)
@@ -120,7 +122,7 @@ public class KeyValueStorageServer implements RequestReplyApplication {
 
     private Reply handleGeneralRequest(KeyValueRequest.KVRequest request) throws ServerException {
         Command command = Command.get(request.getCommand());
-        logger.info("New command received. Command: {}", command);
+        logger.trace("New command received. Command: {}", command);
         switch (command) {
             case PUT:
                 return handlePut(request);
@@ -144,19 +146,25 @@ public class KeyValueStorageServer implements RequestReplyApplication {
     }
 
     private Reply handlePut(KeyValueRequest.KVRequest request) throws ServerException {
-        if (SystemUtil.checkMemoryStress()) {
+        Triple<byte[], ByteString, Integer> parameters =
+                extractAndCheck(request, true, true, true);
+
+        /* Check if routing is needed */
+        SocketAddress target = hashCircle.findNodeForKey(parameters.first);
+        if (target != null) {
+            return new RequestReplyApplication.Reply(target);
+        }
+
+        if (MemoryManager.checkMemoryStress()) {
             throw new ServerException(ErrCode.OUT_OF_SPACE);
         }
 
-        Triple<ByteString, ByteString, Integer> parameters =
-                extractAndCheck(request, true, true, true);
-
-        logger.info(() -> String.format("PUT - Key: %s, Value: %s, Version: %d",
-                ByteUtil.bytesToHexString(parameters.first),
+        logger.trace(() -> String.format("PUT - Key: %s, Value: %s, Version: %d",
+                StringUtils.byteArrayToHexString(parameters.first),
                 ByteUtil.bytesToHexString(parameters.second),
                 parameters.third));
 
-        boolean success = dataModel.put(parameters.first.asReadOnlyByteBuffer(),
+        boolean success = dataModel.put(parameters.first,
                 parameters.second.asReadOnlyByteBuffer(), parameters.third);
         if (!success)
             throw new ServerException(ErrCode.OUT_OF_SPACE);
@@ -165,17 +173,24 @@ public class KeyValueStorageServer implements RequestReplyApplication {
     }
 
     private Reply handleGet(KeyValueRequest.KVRequest request) throws ServerException {
-        Triple<ByteString, ByteString, Integer> parameters =
+        Triple<byte[], ByteString, Integer> parameters =
                 extractAndCheck(request, true, false, false);
 
-        Tuple<byte[], Integer> result = dataModel.get(parameters.first.asReadOnlyByteBuffer());
+        /* Check if routing is needed */
+        SocketAddress target = hashCircle.findNodeForKey(parameters.first);
+        if (target != null) {
+            return new RequestReplyApplication.Reply(target);
+        }
+
+        Tuple<byte[], Integer> result = dataModel.get(parameters.first);
+
         if (result == null) {
-            logger.info("GET - Key: {}, Value: null, Version: null",
-                    () -> ByteUtil.bytesToHexString(parameters.first));
+            logger.trace("GET - Key: {}, Value: null, Version: null",
+                    () -> StringUtils.byteArrayToHexString(parameters.first));
             throw new ServerException(ErrCode.UNKNOWN_KEY);
         } else {
-            logger.info(() -> String.format("GET - Key: %s, Value: %s, Version: %d",
-                    ByteUtil.bytesToHexString(parameters.first),
+            logger.trace(() -> String.format("GET - Key: %s, Value: %s, Version: %d",
+                    StringUtils.byteArrayToHexString(parameters.first),
                     StringUtils.byteArrayToHexString(result.first),
                     result.second));
         }
@@ -189,10 +204,16 @@ public class KeyValueStorageServer implements RequestReplyApplication {
     }
 
     private Reply handleRemove(KeyValueRequest.KVRequest request) throws ServerException {
-        Triple<ByteString, ByteString, Integer> parameters =
+        Triple<byte[], ByteString, Integer> parameters =
                 extractAndCheck(request, true, false, false);
 
-        boolean result = dataModel.remove(parameters.first.asReadOnlyByteBuffer());
+        /* Check if routing is needed */
+        SocketAddress target = hashCircle.findNodeForKey(parameters.first);
+        if (target != null) {
+            return new RequestReplyApplication.Reply(target);
+        }
+
+        boolean result = dataModel.remove(parameters.first);
         if (!result)
             throw new ServerException(ErrCode.UNKNOWN_KEY);
 
