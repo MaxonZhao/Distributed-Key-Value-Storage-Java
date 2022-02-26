@@ -15,7 +15,9 @@
 The server runs on Port #16589.
 
 ```shell
-java "-Dsun.stdout.encoding=UTF-8" "-Dsun.err.encoding=UTF-8" -Xmx64m -Xms64m -jar A4.jar
+java "-Dsun.stdout.encoding=UTF-8" "-Dsun.err.encoding=UTF-8" -Xmx64m -Xms64m -jar A7.jar serverList.yml 1
+
+serverList.yml is the filename of your .yml file, 1 refers to your own ip address listed in serverList.yml going downwards
 ```
 or (no need to build)
 ```shell
