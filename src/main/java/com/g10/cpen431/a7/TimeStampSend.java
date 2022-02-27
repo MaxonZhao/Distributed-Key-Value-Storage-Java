@@ -1,5 +1,6 @@
 package com.g10.cpen431.a7;
 
+import ca.NetSysLab.ProtocolBuffers.Isalive;
 import com.g10.util.HashCircle;
 import com.g10.util.NodeInfo;
 import org.apache.logging.log4j.LogManager;
@@ -22,9 +23,11 @@ public class TimeStampSend implements Closeable{
     private final DatagramSocket serverSocket;
     private static final int numOfNodesToSend = 3;
     private static final int MAX_PACKET_SIZE = 17 * 1024; /* 16KB */
+    private final int myNodeID;
 
-    public TimeStampSend() throws IOException {
+    public TimeStampSend(InetSocketAddress myNodeAddress) throws IOException {
         this.serverSocket = new DatagramSocket(port); //TODO: get port from Node info
+        this.myNodeID = NodeInfo.getServerList().indexOf(myNodeAddress);
     }
 
     public void run() throws IOException{
@@ -49,14 +52,15 @@ public class TimeStampSend implements Closeable{
             }
 
             ArrayList<Long> timeStampVector; //TODO: get the timeStamp vector from hashCircle
-            timeStampVector.set(System.currentTimeMillis());
+            timeStampVector.set(this.myNodeID, System.currentTimeMillis());
 
-            DatagramPacket packet = new DatagramSocket(message, MAX_PACKET_SIZE); //TODO: new proto buffer message
+            byte[] message = Isalive.Is_alive.newBuilder().addAllTimeTag(timeStampVector).build().toByteArray();
+            DatagramPacket packet = new DatagramPacket(message, MAX_PACKET_SIZE);
+
             ArrayList<InetSocketAddress> communicationList = NodeInfo.getEpidemicList(); //TODO: communication addresses
 
             for (int i = 0; i < numOfNodesToSend; i++) {
-                packet.setAddress(communicationList.get(indexSelected.get(i)).getAddress());
-                packet.setPort(communicationList.get(indexSelected.get(i)).getPort());
+                packet.setSocketAddress(communicationList.get(indexSelected.get(i)));
                 this.serverSocket.send(packet);
                 logger.trace("Packet sent. {}", packet);
             }
