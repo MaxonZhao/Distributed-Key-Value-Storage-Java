@@ -32,7 +32,7 @@ public class TimeStampSend implements Closeable{
         this.logger = logger;
     }
 
-    public void run(){
+    public void run() {
 
         while (true) {
             int numOfAliveNodesSelected = 0;
@@ -65,13 +65,12 @@ public class TimeStampSend implements Closeable{
 
                 logger.trace("Packet sent. {}", packet);
             }
-            Timer timer = new Timer();
-            timer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    logger.info("Send to {} nodes", numOfNodesToSend);
-                }
-            }, 0, (long) (HashCircle.T * 1000));
+            try {
+                Thread.sleep((long) (HashCircle.T * 1000));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
         }
 
 
