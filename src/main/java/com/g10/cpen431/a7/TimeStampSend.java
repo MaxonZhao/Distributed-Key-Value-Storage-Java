@@ -77,7 +77,7 @@ public class TimeStampSend implements Closeable{
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         logger.trace("Closing socket.");
         serverSocket.close();
     }
