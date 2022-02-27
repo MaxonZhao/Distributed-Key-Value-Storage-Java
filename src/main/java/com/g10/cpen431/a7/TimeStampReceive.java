@@ -8,6 +8,7 @@ import java.util.List;
 
 import ca.NetSysLab.ProtocolBuffers.Isalive;
 import ca.NetSysLab.ProtocolBuffers.Message;
+import com.g10.util.HashCircle;
 import com.g10.util.NodeInfo;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.logging.log4j.Logger;
@@ -22,10 +23,12 @@ public class TimeStampReceive implements Closeable {
 
     private final int myNodeID;
 
-    public TimeStampReceive(int port, Logger logger, InetSocketAddress myNodeID) throws SocketException {
+    public TimeStampReceive(Logger logger, InetSocketAddress myNodeID) throws SocketException {
+        this.myNodeID = NodeInfo.getServerList().indexOf(myNodeID);
+        int port = NodeInfo.getEpidemicProtocolList().get(this.myNodeID).getPort();
+
         this.socket = new DatagramSocket(port);
         this.logger = logger;
-        this.myNodeID = NodeInfo.getServerList().indexOf(myNodeID);
 
         logger.info("Epidemic Protocol: Bound to port {}.", port);
     }
