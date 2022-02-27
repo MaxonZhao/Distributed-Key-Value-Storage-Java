@@ -109,6 +109,19 @@ public class HashCircle {
             }
         }
 
+        potentialNodes = nodesTreeMap.headMap(hash, true);
+        for (Map.Entry<Long, InetSocketAddress> node : potentialNodes.entrySet()) {
+            updateNodesStatus();
+            if (isAlive(nodesMap.get(node.getValue()))) {
+                // requested data is in local node
+                if (node.getKey() == localHash) {
+                    return null;
+                } else {
+                    return node.getValue();
+                }
+            }
+        }
+
         return null;
 
 //        return node.getValue();
