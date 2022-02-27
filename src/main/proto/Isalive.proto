@@ -1,0 +1,6 @@
+option java_package = "ca.NetSysLab.ProtocolBuffers";
+option java_outer_classname = "Isalive";
+
+message Is_alive {
+  repeated fixed64 time_tag = 1;
+}
