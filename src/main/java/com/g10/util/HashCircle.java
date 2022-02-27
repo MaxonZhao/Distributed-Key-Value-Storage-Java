@@ -20,10 +20,11 @@ public class HashCircle {
 
     private HashCircle() {
         nodesTreeMap = new TreeMap<>();
-        nodesStatus = new ArrayList<>();
         List<InetSocketAddress> nodes = NodeInfo.getServerList();
+
         nodesMap = new HashMap<>();
         initializeLocalTimeStampVector(nodes.size());
+        initializeNodeStatus(nodes.size());
 
         int i = 0;
         for (InetSocketAddress node : nodes) {
@@ -40,6 +41,13 @@ public class HashCircle {
         logger.info("Local hash: {}", localHash);
 
         logRingAnalysis();
+    }
+
+    private void initializeNodeStatus(int n) {
+        nodesStatus = new ArrayList<>(n);
+        for (int i = 0; i < n; ++i) {
+            nodesStatus.set(i, true);
+        }
     }
 
     private void initializeLocalTimeStampVector(int n) {
