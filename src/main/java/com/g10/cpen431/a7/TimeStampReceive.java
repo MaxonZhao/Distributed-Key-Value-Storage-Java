@@ -6,13 +6,16 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import ca.NetSysLab.ProtocolBuffers.Isalive;
+import ca.NetSysLab.ProtocolBuffers.Message;
 import com.g10.util.NodeInfo;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.logging.log4j.Logger;
 
 import static java.lang.Math.max;
 
 public class TimeStampReceive implements Closeable {
-    private static final int MAX_PACKET_SIZE = 20 * 8 + 100; /* 20 Servers * 8 Bytes/long */
+    private static final int MAX_PACKET_SIZE = 20 * 8 + 100; /* 20 Servers * 8 Bytes/long + 100 Bytes just in case */
 
     private final Logger logger;
     private final DatagramSocket socket;
@@ -46,10 +49,17 @@ public class TimeStampReceive implements Closeable {
     private void processPacket(DatagramPacket packet) {
         logger.trace("Epidemic Protocol: Received packet: {}", packet);
 
-        //TODO: Parse the timestamp vector from packet
-        List<Long> remote_timestamp_vector = new ArrayList<Long>();
+        // TODO: Check UDP checksum maybe
 
-        mergeToLocal(remote_timestamp_vector);
+        Isalive.Is_alive is_alive;
+        try {
+            is_alive = Isalive.Is_alive.PARSER.parseFrom(packet.getData(), 0, packet.getLength());
+        } catch (InvalidProtocolBufferException e) {
+            logger.warn("Unable to parse epidemic protocol packet. Packet: {}", packet);
+            return;
+        }
+
+        mergeToLocal(is_alive.getTimeTagList());
     }
 
     private void mergeToLocal(List<Long> remote_timestamp_vector) {
