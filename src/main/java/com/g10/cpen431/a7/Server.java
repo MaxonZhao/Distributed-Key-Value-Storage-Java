@@ -32,8 +32,7 @@ public class Server {
             threads[i].start();
         }
 
-        // TODO: Get port from NodeInfo
-        TimeStampReceive timeStampReceive = new TimeStampReceive(1000, logger, NodeInfo.getLocalNodeInfo());
+        TimeStampReceive timeStampReceive = new TimeStampReceive(logger, NodeInfo.getLocalNodeInfo());
         Thread timeStampReceiveThread = new Thread(timeStampReceive::run);
         timeStampReceiveThread.start();
 
