@@ -79,7 +79,6 @@ public class HashCircle {
         // get all possible(greater hash value) nodes given the hash value
         NavigableMap<Long, InetSocketAddress> potentialNodes = nodesTreeMap.tailMap(hash, true);
 
-        Map.Entry<Long, InetSocketAddress> node;
         // fetch first node from the hash value in the hash circle space clockwise
 //        Map.Entry<Long, InetSocketAddress> node = potentialNodes.firstEntry();
 //        if (node == null) {
@@ -98,21 +97,15 @@ public class HashCircle {
             potentialNodes = nodesTreeMap.tailMap(hash, true);
         }
 
-        Iterator<Map.Entry<Long, InetSocketAddress>> it = potentialNodes.entrySet().iterator();
-
-
-        while (it.hasNext()) {
-            node = potentialNodes.firstEntry();
+        for (Map.Entry<Long, InetSocketAddress> node : potentialNodes.entrySet()) {
             updateNodesStatus();
-            if (isAlive(nodesMap.get(node))) {
+            if (isAlive(nodesMap.get(node.getValue()))) {
                 // requested data is in local node
                 if (node.getKey() == localHash) {
                     return null;
                 } else {
                     return node.getValue();
                 }
-            } else {
-               node = it.next();
             }
         }
 
