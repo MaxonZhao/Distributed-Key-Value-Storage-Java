@@ -16,7 +16,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import ca.NetSysLab.ProtocolBuffers.Isalive;
+import ca.NetSysLab.ProtocolBuffers.epidemic;
 
 class ByteUtilTest {
     @Test
@@ -76,15 +76,21 @@ class ByteUtilTest {
 
     @Test
     void check_proto(){
-        long test = 276763243;
-        byte[] ans= Isalive.Is_alive.newBuilder()
-                .addTimeTag(test)
+        long val1 = 276763243;
+        long val2 = 123342431;
+        long val3 = 867456353;
+        byte[] ans= epidemic.Time_tag.newBuilder()
+                .addTimeTag(val1)
+                .addTimeTag(val2)
                 .build().toByteArray();
         System.out.println(ans);
 
         try {
-            long get_val=Isalive.Is_alive.PARSER.parseFrom(ans, 0, ans.length).getTimeTag(0);
-            System.out.println(get_val);
+            long get_val1=epidemic.Time_tag.PARSER.parseFrom(ans, 0, ans.length).getTimeTag(0);
+            System.out.println(get_val1);
+
+            long get_val2=epidemic.Time_tag.PARSER.parseFrom(ans, 0, ans.length).getTimeTag(1);
+            System.out.println(get_val2);
 
         } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
