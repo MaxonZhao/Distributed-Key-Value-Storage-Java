@@ -95,7 +95,10 @@ public class HashCircle {
             potentialNodes = nodesTreeMap.tailMap(hash, true);
         }
 
-        while (!potentialNodes.isEmpty()) {
+        Iterator<Map.Entry<Long, InetSocketAddress>> it = potentialNodes.entrySet().iterator();
+
+
+        while (it.hasNext()) {
             node = potentialNodes.firstEntry();
             updateNodesStatus();
             if (isAlive(nodesMap.get(node))) {
@@ -125,6 +128,7 @@ public class HashCircle {
     }
 
     public boolean isAlive(int i) {
+        logger.info("requested node # is {}", i);
         return nodesStatus.get(i);
     }
 
