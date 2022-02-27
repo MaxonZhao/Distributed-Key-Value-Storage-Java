@@ -109,7 +109,7 @@ public class HashCircle {
 
     private boolean isNodeAlive(int i) {
         int n = this.getLocalTimestampVector().size();
-        return (System.currentTimeMillis() - local_timestamp_vector.get(i) < T * (Math.log(n) + M));
+        return (System.currentTimeMillis() - local_timestamp_vector.get(i) < (T * (Math.log(n) + M)) * 1000);
     }
 
     public ArrayList<Long> getLocalTimestampVector() {
