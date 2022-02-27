@@ -43,15 +43,13 @@ public class TimeStampSend implements Closeable{
             while (numOfAliveNodesSelected < numOfNodesToSend) {
 
                 int index = rand.nextInt(upperbound);
-                ArrayList<Boolean> status; //TODO: get the status array from hashCircle
-                if (status.get[index] == 1 && nodesList.get(index) != NodeInfo.getLocalNodeInfo()) {
-
+                if (HashCircle.getInstance().isAlive(index) && nodesList.get(index) != NodeInfo.getLocalNodeInfo()) {
                     numOfAliveNodesSelected++;
                     indexSelected.add(index);
                 }
             }
 
-            ArrayList<Long> timeStampVector; //TODO: get the timeStamp vector from hashCircle
+            ArrayList<Long> timeStampVector = HashCircle.getInstance().getLocalTimestampVector();
             timeStampVector.set(this.myNodeID, System.currentTimeMillis());
 
             byte[] message = Isalive.Is_alive.newBuilder().addAllTimeTag(timeStampVector).build().toByteArray();
