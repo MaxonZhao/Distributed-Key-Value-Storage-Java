@@ -4,27 +4,35 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.net.InetSocketAddress;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
+import java.util.*;
 
 public class HashCircle {
     private static final Logger logger = LogManager.getLogger(HashCircle.class);
+    public static final float T = 2.0F;
+    private static final float M = 1.0F;
     // expect to get a list of servers with SocketAddress
     private static HashCircle instance;
     private final TreeMap<Long, InetSocketAddress> nodesTreeMap;
+    private ArrayList<Long> local_timestamp_vector;
+    private ArrayList<Boolean> nodesStatus;
+    private HashMap<InetSocketAddress, Integer> nodesMap;
     private final long localHash;
 
     private HashCircle() {
         nodesTreeMap = new TreeMap<>();
+        nodesStatus = new ArrayList<>();
         List<InetSocketAddress> nodes = NodeInfo.getServerList();
+        nodesMap = new HashMap<>();
+        initializeLocalTimeStampVector(nodes.size());
 
+        int i = 0;
         for (InetSocketAddress node : nodes) {
+            nodesMap.put(node, i);
             long hash = Hash.hash(node.toString().getBytes());
             if (nodesTreeMap.put(hash, node) != null) {
                 logger.fatal("Hash conflict! hash: {}", hash);
             }
+            i++;
         }
         logger.info("nodesTreeMap size: {}, content: {}", nodesTreeMap.size(), nodesTreeMap);
 
@@ -32,6 +40,13 @@ public class HashCircle {
         logger.info("Local hash: {}", localHash);
 
         logRingAnalysis();
+    }
+
+    private void initializeLocalTimeStampVector(int n) {
+        local_timestamp_vector = new ArrayList<>(n);
+        for (int i = 0; i < local_timestamp_vector.size(); ++i) {
+            local_timestamp_vector.set(i, System.currentTimeMillis());
+        }
     }
 
     public static HashCircle getInstance() {
@@ -53,19 +68,62 @@ public class HashCircle {
         // get all possible(greater hash value) nodes given the hash value
         NavigableMap<Long, InetSocketAddress> potentialNodes = nodesTreeMap.tailMap(hash, true);
 
+        Map.Entry<Long, InetSocketAddress> node = null;
         // fetch first node from the hash value in the hash circle space clockwise
-        Map.Entry<Long, InetSocketAddress> node = potentialNodes.firstEntry();
-        if (node == null) {
-            // there is no nodes greater than the given hash value in hash circle
-            node = nodesTreeMap.firstEntry();
+//        Map.Entry<Long, InetSocketAddress> node = potentialNodes.firstEntry();
+//        if (node == null) {
+//            // there is no nodes greater than the given hash value in hash circle
+//            node = nodesTreeMap.firstEntry();
+//        }
+//
+//        // requested data is in local node
+//        if (node.getKey() == localHash) {
+//            return null;
+//        }
+
+        if (potentialNodes.firstEntry() == null) {
+            /* get the hash value of the first entry of on the hash circle */
+            hash = Hash.hash(nodesTreeMap.firstEntry().getValue().toString().getBytes());
+            potentialNodes = nodesTreeMap.tailMap(hash, true);
         }
 
-        // requested data is in local node
-        if (node.getKey() == localHash) {
-            return null;
+        while (!potentialNodes.isEmpty()) {
+            node = potentialNodes.firstEntry();
+            updateNodesStatus();
+            if (isAlive(nodesMap.get(node))) {
+                // requested data is in local node
+                if (node.getKey() == localHash) {
+                    return null;
+                } else {
+                    return node.getValue();
+                }
+            } else {
+                potentialNodes.remove(potentialNodes.firstEntry());
+            }
         }
 
-        return node.getValue();
+        return null;
+
+//        return node.getValue();
+    }
+
+    private boolean isNodeAlive(int i) {
+        int n = this.getLocalTimestampVector().size();
+        return (System.currentTimeMillis() - local_timestamp_vector.get(i) < T * (Math.log(n) + M));
+    }
+
+    public ArrayList<Long> getLocalTimestampVector() {
+        return this.local_timestamp_vector;
+    }
+
+    public boolean isAlive(int i) {
+        return nodesStatus.get(i);
+    }
+
+    private void updateNodesStatus() {
+        for (int i = 0; i < nodesStatus.size(); ++i) {
+            nodesStatus.set(i, isNodeAlive(i));
+        }
     }
 
     private void logRingAnalysis() {
