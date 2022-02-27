@@ -63,6 +63,8 @@ public class TimeStampReceive implements Closeable {
     }
 
     private void mergeToLocal(List<Long> remote_timestamp_vector) {
+        logger.trace("Epidemic Protocol: Received remote_timestamp_vector: {}.", remote_timestamp_vector);
+
         for (int i = 0; i < remote_timestamp_vector.size(); i++) {
             if (i == myNodeID)
                 continue;
