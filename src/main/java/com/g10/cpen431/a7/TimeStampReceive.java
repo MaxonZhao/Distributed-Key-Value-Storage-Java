@@ -71,10 +71,8 @@ public class TimeStampReceive implements Closeable {
         for (int i = 0; i < remote_timestamp_vector.size(); i++) {
             if (i == myNodeID)
                 continue;
-
-            //TODO: Get local timestamp vector (synchronized?)
-            List<Long> local_timestamp_vector = new ArrayList<Long>();
-
+            
+            List<Long> local_timestamp_vector = HashCircle.getInstance().getLocalTimestampVector();
             local_timestamp_vector.set(i, max(local_timestamp_vector.get(i), remote_timestamp_vector.get(i)));
         }
     }
