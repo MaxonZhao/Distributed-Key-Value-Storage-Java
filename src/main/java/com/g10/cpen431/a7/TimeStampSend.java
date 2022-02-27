@@ -9,9 +9,7 @@ import org.checkerframework.checker.units.qual.A;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -19,22 +17,25 @@ import java.net.DatagramPacket;
 
 public class TimeStampSend implements Closeable{
 
-    private static final Logger logger = LogManager.getLogger(TimeStampSend.class);
+    private final Logger logger;
     private final DatagramSocket serverSocket;
     private static final int numOfNodesToSend = 3;
     private static final int MAX_PACKET_SIZE = 17 * 1024; /* 16KB */
     private final int myNodeID;
     private final List<InetSocketAddress> nodesList;
     private final List<InetSocketAddress> communicationList;
+    private final HashCircle hashCircle;
 
-    public TimeStampSend(InetSocketAddress myNodeAddress) throws IOException {
+    public TimeStampSend(Logger logger, InetSocketAddress myNodeAddress) throws IOException {
         this.nodesList = NodeInfo.getServerList();
         this.myNodeID = NodeInfo.getServerList().indexOf(myNodeAddress);
         this.communicationList = NodeInfo.getEpidemicProtocolList();
         this.serverSocket = new DatagramSocket(this.communicationList.get(this.myNodeID).getPort());
+        this.hashCircle = HashCircle.getInstance();
+        this.logger = logger;
     }
 
-    public void run() throws IOException{
+    public void run(){
 
         while (true) {
             int numOfAliveNodesSelected = 0;
@@ -45,13 +46,13 @@ public class TimeStampSend implements Closeable{
             while (numOfAliveNodesSelected < numOfNodesToSend) {
 
                 int index = rand.nextInt(upperbound);
-                if (HashCircle.getInstance().isAlive(index) && nodesList.get(index) != NodeInfo.getLocalNodeInfo()) {
+                if (hashCircle.isAlive(index) && index != this.myNodeID) {
                     numOfAliveNodesSelected++;
                     indexSelected.add(index);
                 }
             }
 
-            ArrayList<Long> timeStampVector = HashCircle.getInstance().getLocalTimestampVector();
+            ArrayList<Long> timeStampVector = hashCircle.getLocalTimestampVector();
             timeStampVector.set(this.myNodeID, System.currentTimeMillis());
 
             byte[] message = Isalive.Is_alive.newBuilder().addAllTimeTag(timeStampVector).build().toByteArray();
@@ -59,7 +60,13 @@ public class TimeStampSend implements Closeable{
 
             for (int i = 0; i < numOfNodesToSend; i++) {
                 packet.setSocketAddress(communicationList.get(indexSelected.get(i)));
-                this.serverSocket.send(packet);
+                try{
+                    this.serverSocket.send(packet);
+                } catch(IOException e) {
+                    e.printStackTrace();
+
+                }
+
                 logger.trace("Packet sent. {}", packet);
             }
         }

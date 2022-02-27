@@ -32,6 +32,10 @@ public class Server {
             threads[i].start();
         }
 
+        TimeStampSend timeStampSend = new TimeStampSend(logger, NodeInfo.getLocalNodeInfo());
+        Thread timeStampSendThread = new Thread(timeStampSend::run);
+        timeStampSendThread.start();
+
         TimeStampReceive timeStampReceive = new TimeStampReceive(logger, NodeInfo.getLocalNodeInfo());
         Thread timeStampReceiveThread = new Thread(timeStampReceive::run);
         timeStampReceiveThread.start();
@@ -40,6 +44,7 @@ public class Server {
             threads[i].join();
         }
 
+        timeStampSendThread.join();
         timeStampReceiveThread.join();
     }
 
