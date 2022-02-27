@@ -1,7 +1,9 @@
 package com.g10.cpen431.a7;
 
+import ca.NetSysLab.ProtocolBuffers.Message;
 import com.g10.util.ByteUtil;
 import com.g10.util.NodeInfo;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -9,12 +11,12 @@ import com.g10.util.Hash;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import ca.NetSysLab.ProtocolBuffers.Isalive;
 
 class ByteUtilTest {
     @Test
@@ -70,6 +72,26 @@ class ByteUtilTest {
 
 
         assertEquals(false, for_test.hash(A).longValue()==for_test.hash(B).longValue());
+    }
+
+    @Test
+    void check_proto(){
+        long test = 276763243;
+        byte[] ans= Isalive.Is_alive.newBuilder()
+                .addTimeTag(test)
+                .build().toByteArray();
+        System.out.println(ans);
+
+        try {
+            long get_val=Isalive.Is_alive.PARSER.parseFrom(ans, 0, ans.length).getTimeTag(0);
+            System.out.println(get_val);
+
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
+
+
+
     }
 
 }
