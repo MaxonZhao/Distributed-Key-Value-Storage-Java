@@ -6,8 +6,8 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.NetSysLab.ProtocolBuffers.Isalive;
 import ca.NetSysLab.ProtocolBuffers.Message;
+import ca.NetSysLab.ProtocolBuffers.epidemic;
 import com.g10.util.HashCircle;
 import com.g10.util.NodeInfo;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -54,15 +54,15 @@ public class TimeStampReceive implements Closeable {
 
         // TODO: Check UDP checksum maybe
 
-        Isalive.Is_alive is_alive;
+        epidemic.Time_tag time_tag;
         try {
-            is_alive = Isalive.Is_alive.PARSER.parseFrom(packet.getData(), 0, packet.getLength());
+            time_tag = epidemic.Time_tag.PARSER.parseFrom(packet.getData(), 0, packet.getLength());
         } catch (InvalidProtocolBufferException e) {
             logger.warn("Unable to parse epidemic protocol packet. Packet: {}", packet);
             return;
         }
 
-        mergeToLocal(is_alive.getTimeTagList());
+        mergeToLocal(time_tag.getTimeTagList());
     }
 
     private void mergeToLocal(List<Long> remote_timestamp_vector) {
