@@ -22,6 +22,9 @@ public class HashCircle {
         nodesTreeMap = new TreeMap<>();
         List<InetSocketAddress> nodes = NodeInfo.getServerList();
 
+        logger.info("{} nodes joined the system", nodes.size());
+        logger.info("nodes {} joined the system", nodes.toString());
+
         nodesMap = new HashMap<>();
         initializeLocalTimeStampVector(nodes.size());
         initializeNodeStatus(nodes.size());
@@ -109,7 +112,7 @@ public class HashCircle {
                     return node.getValue();
                 }
             } else {
-                potentialNodes.remove(potentialNodes.firstEntry());
+               node = it.next();
             }
         }
 
