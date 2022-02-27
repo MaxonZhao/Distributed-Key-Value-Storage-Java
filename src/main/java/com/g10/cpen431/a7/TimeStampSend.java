@@ -24,15 +24,17 @@ public class TimeStampSend implements Closeable{
     private static final int numOfNodesToSend = 3;
     private static final int MAX_PACKET_SIZE = 17 * 1024; /* 16KB */
     private final int myNodeID;
+    private final List<InetSocketAddress> nodesList;
+    private final List<InetSocketAddress> communicationList;
 
     public TimeStampSend(InetSocketAddress myNodeAddress) throws IOException {
-        this.serverSocket = new DatagramSocket(port); //TODO: get port from Node info
+        this.nodesList = NodeInfo.getServerList();
         this.myNodeID = NodeInfo.getServerList().indexOf(myNodeAddress);
+        this.communicationList = NodeInfo.getEpidemicProtocolList();
+        this.serverSocket = new DatagramSocket(this.communicationList.get(this.myNodeID).getPort());
     }
 
     public void run() throws IOException{
-
-        List<InetSocketAddress> nodesList = NodeInfo.getServerList();
 
         while (true) {
             int numOfAliveNodesSelected = 0;
@@ -54,8 +56,6 @@ public class TimeStampSend implements Closeable{
 
             byte[] message = Isalive.Is_alive.newBuilder().addAllTimeTag(timeStampVector).build().toByteArray();
             DatagramPacket packet = new DatagramPacket(message, MAX_PACKET_SIZE);
-
-            ArrayList<InetSocketAddress> communicationList = NodeInfo.getEpidemicList(); //TODO: communication addresses
 
             for (int i = 0; i < numOfNodesToSend; i++) {
                 packet.setSocketAddress(communicationList.get(indexSelected.get(i)));

@@ -8,6 +8,7 @@ import java.util.List;
 
 import ca.NetSysLab.ProtocolBuffers.Isalive;
 import ca.NetSysLab.ProtocolBuffers.Message;
+import com.g10.util.HashCircle;
 import com.g10.util.NodeInfo;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.logging.log4j.Logger;
@@ -22,10 +23,12 @@ public class TimeStampReceive implements Closeable {
 
     private final int myNodeID;
 
-    public TimeStampReceive(int port, Logger logger, InetSocketAddress myNodeID) throws SocketException {
+    public TimeStampReceive(Logger logger, InetSocketAddress myNodeID) throws SocketException {
+        this.myNodeID = NodeInfo.getServerList().indexOf(myNodeID);
+        int port = NodeInfo.getEpidemicProtocolList().get(this.myNodeID).getPort();
+
         this.socket = new DatagramSocket(port);
         this.logger = logger;
-        this.myNodeID = NodeInfo.getServerList().indexOf(myNodeID);
 
         logger.info("Epidemic Protocol: Bound to port {}.", port);
     }
@@ -68,10 +71,8 @@ public class TimeStampReceive implements Closeable {
         for (int i = 0; i < remote_timestamp_vector.size(); i++) {
             if (i == myNodeID)
                 continue;
-
-            //TODO: Get local timestamp vector (synchronized?)
-            List<Long> local_timestamp_vector = new ArrayList<Long>();
-
+            
+            List<Long> local_timestamp_vector = HashCircle.getInstance().getLocalTimestampVector();
             local_timestamp_vector.set(i, max(local_timestamp_vector.get(i), remote_timestamp_vector.get(i)));
         }
     }
