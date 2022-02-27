@@ -26,7 +26,7 @@ public class TimeStampReceive implements Closeable {
     public TimeStampReceive(Logger logger, InetSocketAddress myNodeID) throws SocketException {
         this.myNodeID = NodeInfo.getServerList().indexOf(myNodeID);
         int port = NodeInfo.getEpidemicProtocolList().get(this.myNodeID).getPort();
-
+        logger.info("Port in use by the receive thread: {}", port);
         this.socket = new DatagramSocket(port);
         this.logger = logger;
 
