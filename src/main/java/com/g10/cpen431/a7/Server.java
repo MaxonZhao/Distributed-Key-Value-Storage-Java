@@ -31,9 +31,17 @@ public class Server {
             threads[i] = new Thread(() -> run(server));
             threads[i].start();
         }
+
+        // TODO: Get port from NodeInfo
+        TimeStampReceive timeStampReceive = new TimeStampReceive(1000, logger, NodeInfo.getLocalNodeInfo());
+        Thread timeStampReceiveThread = new Thread(timeStampReceive::run);
+        timeStampReceiveThread.start();
+
         for (int i = 0; i < numberOfThreads; i++) {
             threads[i].join();
         }
+
+        timeStampReceiveThread.join();
     }
 
     private static void run(KeyValueStorageServer server) {
