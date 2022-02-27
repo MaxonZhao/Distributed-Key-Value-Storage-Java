@@ -45,7 +45,7 @@ public class HashCircle {
 
     private void initializeNodeStatus(int n) {
         nodesStatus = new ArrayList<>(n);
-        for (int i = 0; i < n; ++i) {
+        for (int i = 0; i < nodesStatus.size(); ++i) {
             nodesStatus.set(i, true);
         }
     }
