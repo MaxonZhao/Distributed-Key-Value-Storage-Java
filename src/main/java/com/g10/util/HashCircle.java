@@ -48,15 +48,15 @@ public class HashCircle {
 
     private void initializeNodeStatus(int n) {
         nodesStatus = new ArrayList<>(n);
-        for (int i = 0; i < nodesStatus.size(); ++i) {
-            nodesStatus.set(i, true);
+        for (int i = 0; i < n; ++i) {
+            nodesStatus.add(true);
         }
     }
 
     private void initializeLocalTimeStampVector(int n) {
         local_timestamp_vector = new ArrayList<>(n);
-        for (int i = 0; i < local_timestamp_vector.size(); ++i) {
-            local_timestamp_vector.set(i, System.currentTimeMillis());
+        for (int i = 0; i < n; ++i) {
+            local_timestamp_vector.add(System.currentTimeMillis());
         }
     }
 
@@ -79,7 +79,7 @@ public class HashCircle {
         // get all possible(greater hash value) nodes given the hash value
         NavigableMap<Long, InetSocketAddress> potentialNodes = nodesTreeMap.tailMap(hash, true);
 
-        Map.Entry<Long, InetSocketAddress> node = null;
+        Map.Entry<Long, InetSocketAddress> node;
         // fetch first node from the hash value in the hash circle space clockwise
 //        Map.Entry<Long, InetSocketAddress> node = potentialNodes.firstEntry();
 //        if (node == null) {
