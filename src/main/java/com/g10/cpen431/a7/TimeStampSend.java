@@ -1,11 +1,9 @@
 package com.g10.cpen431.a7;
 
-import ca.NetSysLab.ProtocolBuffers.Isalive;
+import ca.NetSysLab.ProtocolBuffers.epidemic;
 import com.g10.util.HashCircle;
 import com.g10.util.NodeInfo;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.checkerframework.checker.units.qual.A;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -55,7 +53,7 @@ public class TimeStampSend implements Closeable{
             ArrayList<Long> timeStampVector = hashCircle.getLocalTimestampVector();
             timeStampVector.set(this.myNodeID, System.currentTimeMillis());
 
-            byte[] message = Isalive.Is_alive.newBuilder().addAllTimeTag(timeStampVector).build().toByteArray();
+            byte[] message = epidemic.Time_tag.newBuilder().addAllTimeTag(timeStampVector).build().toByteArray();
             DatagramPacket packet = new DatagramPacket(message, MAX_PACKET_SIZE);
 
             for (int i = 0; i < numOfNodesToSend; i++) {
@@ -64,7 +62,6 @@ public class TimeStampSend implements Closeable{
                     this.serverSocket.send(packet);
                 } catch(IOException e) {
                     e.printStackTrace();
-
                 }
 
                 logger.trace("Packet sent. {}", packet);
