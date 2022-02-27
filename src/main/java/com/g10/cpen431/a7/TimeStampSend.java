@@ -8,10 +8,9 @@ import org.apache.logging.log4j.Logger;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.net.DatagramPacket;
+import java.util.concurrent.TimeUnit;
 
 public class TimeStampSend implements Closeable{
 
@@ -66,7 +65,15 @@ public class TimeStampSend implements Closeable{
 
                 logger.trace("Packet sent. {}", packet);
             }
+            Timer timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    logger.info("Send to {} nodes", numOfNodesToSend);
+                }
+            }, 0, (long) (HashCircle.T * 1000));
         }
+
 
     }
 
