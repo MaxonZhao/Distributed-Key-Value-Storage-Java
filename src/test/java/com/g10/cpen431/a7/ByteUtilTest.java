@@ -75,29 +75,22 @@ class ByteUtilTest {
     }
 
     @Test
-    void check_seperate_equal() {
-        Hash for_test = new Hash();
-
-        final double longRange = ((double) Long.MAX_VALUE - Long.MIN_VALUE);
-        long range = (long) (longRange/20);
-
-        ArrayList<Long> answer = new ArrayList<>();
-        answer = for_test.set_node_num(20);
-
-        assertEquals(range, answer.get(1) - answer.get(0));
-    }
-
-    @Test
     void check_proto(){
-        long test = 276763243;
+        long val1 = 276763243;
+        long val2 = 123342431;
+        long val3 = 867456353;
         byte[] ans= epidemic.Time_tag.newBuilder()
-                .addTimeTag(test)
+                .addTimeTag(val1)
+                .addTimeTag(val2)
                 .build().toByteArray();
         System.out.println(ans);
 
         try {
-            long get_val=epidemic.Time_tag.PARSER.parseFrom(ans, 0, ans.length).getTimeTag(0);
-            System.out.println(get_val);
+            long get_val1=epidemic.Time_tag.PARSER.parseFrom(ans, 0, ans.length).getTimeTag(0);
+            System.out.println(get_val1);
+
+            long get_val2=epidemic.Time_tag.PARSER.parseFrom(ans, 0, ans.length).getTimeTag(1);
+            System.out.println(get_val2);
 
         } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();

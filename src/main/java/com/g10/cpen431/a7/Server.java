@@ -31,9 +31,16 @@ public class Server {
             threads[i] = new Thread(() -> run(server));
             threads[i].start();
         }
+
+
+        TimeStampCommunication timeStampCommunication = new TimeStampCommunication();
+        timeStampCommunication.run();
+
         for (int i = 0; i < numberOfThreads; i++) {
             threads[i].join();
         }
+
+        logger.fatal("threads join returned");
     }
 
     private static void run(KeyValueStorageServer server) {
