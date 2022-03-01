@@ -45,7 +45,7 @@ public class HashCircle {
 
         logger.info("nodesTreeMap size: {}, content: {}", nodesTreeMap.size(), nodesTreeMap);
 
-        localHash = Hash.hash(NodeInfo.getLocalNodeInfo().toString().getBytes());
+        localHash = hashValues.get(NodeInfo.getSelfIndex());
         logger.info("Local hash: {}", localHash);
 
         logRingAnalysis();

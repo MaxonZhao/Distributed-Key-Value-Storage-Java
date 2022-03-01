@@ -17,6 +17,7 @@ public class NodeInfo {
     private static List<InetSocketAddress> serverList;
     private static List<InetSocketAddress> epidemicProtocolList;
     private static InetSocketAddress self;
+    private static int selfIndex;
 
     public static class ServerList {
         @JsonProperty
@@ -73,6 +74,7 @@ public class NodeInfo {
         }
 
         NodeInfo.serverList = nodes;
+        NodeInfo.selfIndex = selfIndex;
         NodeInfo.self = nodes.get(selfIndex);
 
         NodeInfo.epidemicProtocolList = epNodes;
@@ -90,5 +92,9 @@ public class NodeInfo {
 
     public static InetSocketAddress getLocalNodeInfo() {
         return self;
+    }
+
+    public static int getSelfIndex() {
+        return selfIndex;
     }
 }
