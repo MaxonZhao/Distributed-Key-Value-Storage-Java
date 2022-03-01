@@ -58,3 +58,7 @@ There are some unit tests in `com.g10.cpen431.ByteUtilTest` for utility function
 - `Process.getCurrentProcessId()` is adapted from https://stackoverflow.com/a/43399977.
 - `ByteUtil.bytesToHexString(Iterable<Byte>)` is adapted from `StringUtils.byteArrayToHexString(byte[])`.
 - `src/main/resources/log4j2.xml` is modified from https://logging.apache.org/log4j/2.x/manual/configuration.html#AutomaticReconfiguration.
+
+## Immediate Termination Proof
+- The code that handles node termination is in `src/main/java/com/g10/cpen431.a7/KeyValueStorageServer` line 42.
+- Once the request is parsed to find that the request is a shutdown request, the system will exit immediately.
