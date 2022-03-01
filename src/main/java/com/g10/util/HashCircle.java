@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class HashCircle {
     private static final Logger logger = LogManager.getLogger(HashCircle.class);
@@ -44,6 +45,21 @@ public class HashCircle {
         logger.info("Local hash: {}", localHash);
 
         logRingAnalysis();
+
+        if (logger.isInfoEnabled()) {
+            Timer timer = new Timer();
+            long startTime = System.currentTimeMillis();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    logger.info("IsAlive Status: {}", nodesStatus);
+                    List<Long> timestamps = local_timestamp_vector.stream().map(
+                            x -> (x - startTime) / 1000
+                    ).collect(Collectors.toList());
+                    logger.info("local_timestamp_vector: {}", timestamps);
+                }
+            }, 0, 5 * 1000);
+        }
     }
 
     private void initializeNodeStatus(int n) {
@@ -137,7 +153,7 @@ public class HashCircle {
     }
 
     public boolean isAlive(int i) {
-        logger.info("requested node # is {}", i);
+        logger.trace("requested node # is {}", i);
         return nodesStatus.get(i);
     }
 
