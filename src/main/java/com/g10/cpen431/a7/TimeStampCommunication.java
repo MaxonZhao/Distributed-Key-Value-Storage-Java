@@ -15,6 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 public class TimeStampCommunication {
     private static final Logger logger = LogManager.getLogger(TimeStampCommunication.class);
@@ -70,8 +71,18 @@ public class TimeStampCommunication {
             Random rand = new Random();
             int upperbound = nodesList.size();
             ArrayList<Integer> indexSelected = new ArrayList<>();
+            int numOfAliveNodes= 0;
+            for (int i = 0; i < upperbound; i++) {
+                if (hashCircle.isAlive(i)) {
+                    numOfAliveNodes++;
+                }
+            }
+            if (numOfAliveNodes <= 1) {
+                logger.trace("Send thread: Only {} nodes alive", numOfAliveNodes);
+                return;
+            }
 
-            while (numOfAliveNodesSelected < numOfNodesToSend) {
+            while (numOfAliveNodesSelected < Math.min(numOfAliveNodes, numOfNodesToSend)) {
 
                 int index = rand.nextInt(upperbound);
                 if (index != this.myNodeID) {

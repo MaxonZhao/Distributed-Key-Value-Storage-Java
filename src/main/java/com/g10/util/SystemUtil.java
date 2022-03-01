@@ -10,7 +10,7 @@ public class SystemUtil {
     private static final int pid = getCurrentProcessId();
 
     public static int concurrencyLevel() {
-        return Runtime.getRuntime().availableProcessors(); // TODO: try different levels
+        return 1; // Runtime.getRuntime().availableProcessors(); // TODO: try different levels
     }
 
     public static int getProcessId() {
