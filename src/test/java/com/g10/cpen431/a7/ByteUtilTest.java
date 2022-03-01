@@ -95,9 +95,21 @@ class ByteUtilTest {
         } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
         }
-
-
-
     }
+
+    @Test
+    void check_seperate_equal() {
+        Hash for_test = new Hash();
+
+        final double longRange = ((double) Long.MAX_VALUE - Long.MIN_VALUE);
+        long range = (long) (longRange/20);
+
+        ArrayList<Long> answer = new ArrayList<>();
+        answer = for_test.set_node_num(20);
+
+        assertEquals(range, answer.get(1) - answer.get(0));
+    }
+
+
 
 }
