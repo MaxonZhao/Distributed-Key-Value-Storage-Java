@@ -2,6 +2,7 @@ package com.g10.cpen431.a7;
 
 import java.io.IOException;
 import java.net.*;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -84,7 +85,7 @@ public class TimeStampCommunication {
             while (numOfAliveNodesSelected < Math.min(numOfAliveNodes - 1, numOfNodesToSend)) {
 
                 int index = rand.nextInt(upperbound);
-                if (hashCircle.isAlive(index) && index != this.myNodeID) {
+                if (index != this.myNodeID) {
                     numOfAliveNodesSelected++;
                     indexSelected.add(index);
                 }
@@ -133,7 +134,7 @@ public class TimeStampCommunication {
     }
 
     private void mergeToLocal(List<Long> remote_timestamp_vector) {
-        logger.info("Epidemic Protocol: Received remote_timestamp_vector: {}.", remote_timestamp_vector);
+        logger.trace("Epidemic Protocol: Received remote_timestamp_vector: {}.", remote_timestamp_vector);
 
         for (int i = 0; i < remote_timestamp_vector.size(); i++) {
             if (i == myNodeID)

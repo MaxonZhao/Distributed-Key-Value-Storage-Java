@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class HashCircle {
     private static final Logger logger = LogManager.getLogger(HashCircle.class);
@@ -111,7 +112,7 @@ public class HashCircle {
         }
 
         /* get potential nodes before the hashed key in 'clockwise' order */
-        potentialNodes = nodesTreeMap.headMap(hash, true).descendingMap();
+        potentialNodes = nodesTreeMap.headMap(hash, true);
 
         for (Map.Entry<Long, InetSocketAddress> node : potentialNodes.entrySet()) {
             updateNodesStatus();
