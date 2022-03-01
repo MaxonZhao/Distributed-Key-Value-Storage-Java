@@ -27,15 +27,22 @@ public class HashCircle {
         initializeLocalTimeStampVector(nodes.size());
         initializeNodeStatus(nodes.size());
 
-        int i = 0;
-        for (InetSocketAddress node : nodes) {
+//        int i = 0;
+//        for (InetSocketAddress node : nodes) {
+//            nodesMap.put(node, i);
+//            long hash = Hash.hash(node.toString().getBytes());
+//            if (nodesTreeMap.put(hash, node) != null) {
+//                logger.fatal("Hash conflict! hash: {}", hash);
+//            }
+//            i++;
+//        }
+        ArrayList<Long> hashValues = Hash.set_node_num(nodes.size());
+        for (int i = 0; i < nodes.size(); ++i) {
+            InetSocketAddress node = nodes.get(i);
             nodesMap.put(node, i);
-            long hash = Hash.hash(node.toString().getBytes());
-            if (nodesTreeMap.put(hash, node) != null) {
-                logger.fatal("Hash conflict! hash: {}", hash);
-            }
-            i++;
+            nodesTreeMap.put(hashValues.get(i), node);
         }
+
         logger.info("nodesTreeMap size: {}, content: {}", nodesTreeMap.size(), nodesTreeMap);
 
         localHash = Hash.hash(NodeInfo.getLocalNodeInfo().toString().getBytes());
@@ -49,13 +56,13 @@ public class HashCircle {
                 @Override
                 public void run() {
                     for (int i = 0; i < nodesMap.size(); ++i) {
-                        if (nodesStatus.get(i)) logger.info("node # {} is alive", i);
-                        else logger.info("node # {} is down", i);
+                        if (!nodesStatus.get(i)) logger.info("node # {} is down", i);
                     }
                 }
             }, 0, 5 * 1000);
         }
     }
+
 
     private void initializeNodeStatus(int n) {
         nodesStatus = new ArrayList<>(n);

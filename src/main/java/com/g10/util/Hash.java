@@ -11,8 +11,8 @@ public class Hash {
     private static int node_num = 0;
 
 
-    public ArrayList<Long> set_node_num(int node_num){
-        this.node_num = node_num;
+    public static ArrayList<Long> set_node_num(int node_num){
+        node_num = node_num;
 
         final double longRange = ((double) Long.MAX_VALUE - Long.MIN_VALUE);
         long range = (long) (longRange/node_num);
