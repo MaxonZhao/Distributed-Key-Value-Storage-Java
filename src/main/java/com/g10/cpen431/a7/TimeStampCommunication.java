@@ -83,7 +83,7 @@ public class TimeStampCommunication {
             timeStampVector.set(this.myNodeID, System.currentTimeMillis());
 
             byte[] message = epidemic.Time_tag.newBuilder().addAllTimeTag(timeStampVector).build().toByteArray();
-            DatagramPacket packet = new DatagramPacket(message, MAX_PACKET_SIZE);
+            DatagramPacket packet = new DatagramPacket(message, message.length);
 
             for (int i = 0; i < numOfNodesToSend; i++) {
                 packet.setSocketAddress(communicationList.get(indexSelected.get(i)));
@@ -122,7 +122,7 @@ public class TimeStampCommunication {
     }
 
     private void mergeToLocal(List<Long> remote_timestamp_vector) {
-        logger.trace("Epidemic Protocol: Received remote_timestamp_vector: {}.", remote_timestamp_vector);
+        logger.info("Epidemic Protocol: Received remote_timestamp_vector: {}.", remote_timestamp_vector);
 
         for (int i = 0; i < remote_timestamp_vector.size(); i++) {
             if (i == myNodeID)
