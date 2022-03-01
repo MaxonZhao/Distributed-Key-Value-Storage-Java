@@ -11,7 +11,7 @@ args = parser.parse_args()
 
 # update the following variables for each assignment
 jar = "A7.jar" # jar file name
-client_jar = "a6_2022_eval_tests_v1.jar" # must be in the current dir
+client_jar = "a7_2022_eval_tests_v1.jar" # must be in the current dir
 n_nodes = 20 # number of nodes
 
 # do not edit the following variables
@@ -22,7 +22,9 @@ servers_yml_local = "servers_local.yml"
 servers_txt = "servers.txt"
 start_py = "scripts/start.py" # script for starting multiple servers
 start_port = 20000
+epidemic_port = 40000
 single_port = 43100
+single_epidemic_port = 43101
 
 
 def send_file_to_server(file):
@@ -46,6 +48,12 @@ def op_fetch_logs():
 # Generate servers_local.yml
 def op_yml():
     with open(servers_yml, 'w') as yml_file:
+        yml_file.write("epidemicProtocolInfo:\n")
+        port = epidemic_port
+        for _ in range(n_nodes):
+            yml_file.write(f"  - IP: {args.server_ip}\n")
+            yml_file.write(f"    port: {port}\n")
+            port += 1
         yml_file.write("serverInfo:\n")
         port = start_port
         for _ in range(n_nodes):
@@ -56,6 +64,9 @@ def op_yml():
 # Generate servers_local.yml, which contains only 127.0.0.1:43100
 def op_yml_local():
     with open(servers_yml_local, 'w') as yml_file:
+        yml_file.write("epidemicProtocolInfo:\n")
+        yml_file.write(f"  - IP: 127.0.0.1\n")
+        yml_file.write(f"    port: {single_epidemic_port}\n")
         yml_file.write("serverInfo:\n")
         yml_file.write(f"  - IP: 127.0.0.1\n")
         yml_file.write(f"    port: {single_port}\n")
