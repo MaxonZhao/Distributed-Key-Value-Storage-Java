@@ -22,9 +22,6 @@ public class HashCircle {
         nodesTreeMap = new TreeMap<>();
         List<InetSocketAddress> nodes = NodeInfo.getServerList();
 
-        logger.info("{} nodes joined the system", nodes.size());
-        logger.info("nodes {} joined the system", nodes.toString());
-
         nodesMap = new HashMap<>();
         initializeLocalTimeStampVector(nodes.size());
         initializeNodeStatus(nodes.size());
@@ -44,6 +41,19 @@ public class HashCircle {
         logger.info("Local hash: {}", localHash);
 
         logRingAnalysis();
+
+        if (logger.isInfoEnabled()) {
+            Timer timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    for (int i = 0; i < nodesMap.size(); ++i) {
+                        if (nodesStatus.get(i)) logger.info("node # {} is alive", i);
+                        else logger.info("node # {} is down", i);
+                    }
+                }
+            }, 0, 5 * 1000);
+        }
     }
 
     private void initializeNodeStatus(int n) {
@@ -130,7 +140,6 @@ public class HashCircle {
     }
 
     public boolean isAlive(int i) {
-        logger.info("requested node # is {}", i);
         return nodesStatus.get(i);
     }
 
