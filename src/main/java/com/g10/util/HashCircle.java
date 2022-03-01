@@ -112,7 +112,7 @@ public class HashCircle {
         }
 
         /* get potential nodes before the hashed key in 'clockwise' order */
-        potentialNodes = nodesTreeMap.headMap(hash, true).descendingMap();
+        potentialNodes = nodesTreeMap.headMap(hash, true);
 
         for (Map.Entry<Long, InetSocketAddress> node : potentialNodes.entrySet()) {
             updateNodesStatus();
