@@ -6,3 +6,8 @@ build
 
 .idea
 .DS_Store
+
+servers.txt
+servers.yml
+servers_local.yml
+logs/

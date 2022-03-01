@@ -4,34 +4,78 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.net.InetSocketAddress;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class HashCircle {
     private static final Logger logger = LogManager.getLogger(HashCircle.class);
+    public static final float T = 2.0F;
+    private static final float M = 1.0F;
     // expect to get a list of servers with SocketAddress
     private static HashCircle instance;
     private final TreeMap<Long, InetSocketAddress> nodesTreeMap;
+    private ArrayList<Long> local_timestamp_vector;
+    private ArrayList<Boolean> nodesStatus;
+    private HashMap<InetSocketAddress, Integer> nodesMap;
     private final long localHash;
 
     private HashCircle() {
         nodesTreeMap = new TreeMap<>();
         List<InetSocketAddress> nodes = NodeInfo.getServerList();
 
-        for (InetSocketAddress node : nodes) {
-            long hash = Hash.hash(node.toString().getBytes());
-            if (nodesTreeMap.put(hash, node) != null) {
-                logger.fatal("Hash conflict! hash: {}", hash);
-            }
+        nodesMap = new HashMap<>();
+        initializeLocalTimeStampVector(nodes.size());
+        initializeNodeStatus(nodes.size());
+
+//        int i = 0;
+//        for (InetSocketAddress node : nodes) {
+//            nodesMap.put(node, i);
+//            long hash = Hash.hash(node.toString().getBytes());
+//            if (nodesTreeMap.put(hash, node) != null) {
+//                logger.fatal("Hash conflict! hash: {}", hash);
+//            }
+//            i++;
+//        }
+        ArrayList<Long> hashValues = Hash.set_node_num(nodes.size());
+        for (int i = 0; i < nodes.size(); ++i) {
+            InetSocketAddress node = nodes.get(i);
+            nodesMap.put(node, i);
+            nodesTreeMap.put(hashValues.get(i), node);
         }
+
         logger.info("nodesTreeMap size: {}, content: {}", nodesTreeMap.size(), nodesTreeMap);
 
-        localHash = Hash.hash(NodeInfo.getLocalNodeInfo().toString().getBytes());
+        localHash = hashValues.get(NodeInfo.getSelfIndex());
         logger.info("Local hash: {}", localHash);
 
         logRingAnalysis();
+
+        if (logger.isInfoEnabled()) {
+            Timer timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    for (int i = 0; i < nodesMap.size(); ++i) {
+                        if (!nodesStatus.get(i)) logger.info("node # {} is down", i);
+                    }
+                }
+            }, 0, 5 * 1000);
+        }
+    }
+
+
+    private void initializeNodeStatus(int n) {
+        nodesStatus = new ArrayList<>(n);
+        for (int i = 0; i < n; ++i) {
+            nodesStatus.add(true);
+        }
+    }
+
+    private void initializeLocalTimeStampVector(int n) {
+        local_timestamp_vector = new ArrayList<>(n);
+        for (int i = 0; i < n; ++i) {
+            local_timestamp_vector.add(System.currentTimeMillis());
+        }
     }
 
     public static HashCircle getInstance() {
@@ -53,19 +97,64 @@ public class HashCircle {
         // get all possible(greater hash value) nodes given the hash value
         NavigableMap<Long, InetSocketAddress> potentialNodes = nodesTreeMap.tailMap(hash, true);
 
-        // fetch first node from the hash value in the hash circle space clockwise
-        Map.Entry<Long, InetSocketAddress> node = potentialNodes.firstEntry();
-        if (node == null) {
-            // there is no nodes greater than the given hash value in hash circle
-            node = nodesTreeMap.firstEntry();
+
+        Map.Entry<Long, InetSocketAddress> firstNode = nodesTreeMap.firstEntry();
+
+        if (firstNode == null) {
+            /* get the hash value of the first entry of on the hash circle */
+            hash = Hash.hash(firstNode.getValue().toString().getBytes());
+            potentialNodes = nodesTreeMap.tailMap(hash, true);
         }
 
-        // requested data is in local node
-        if (node.getKey() == localHash) {
-            return null;
+        for (Map.Entry<Long, InetSocketAddress> node : potentialNodes.entrySet()) {
+            updateNodesStatus();
+            if (isAlive(nodesMap.get(node.getValue()))) {
+                // requested data is in local node
+                if (node.getKey() == localHash) {
+                    return null;
+                } else {
+                    return node.getValue();
+                }
+            }
         }
 
-        return node.getValue();
+        /* get potential nodes before the hashed key in 'clockwise' order */
+        potentialNodes = nodesTreeMap.headMap(hash, true);
+
+        for (Map.Entry<Long, InetSocketAddress> node : potentialNodes.entrySet()) {
+            updateNodesStatus();
+            if (isAlive(nodesMap.get(node.getValue()))) {
+                // requested data is in local node
+                if (node.getKey() == localHash) {
+                    return null;
+                } else {
+                    return node.getValue();
+                }
+            }
+        }
+
+        return null;
+
+//        return node.getValue();
+    }
+
+    private boolean isNodeAlive(int i) {
+        int n = this.getLocalTimestampVector().size();
+        return (System.currentTimeMillis() - local_timestamp_vector.get(i) < (T * (Math.log(n) + M)) * 1000);
+    }
+
+    public ArrayList<Long> getLocalTimestampVector() {
+        return this.local_timestamp_vector;
+    }
+
+    public boolean isAlive(int i) {
+        return nodesStatus.get(i);
+    }
+
+    private void updateNodesStatus() {
+        for (int i = 0; i < nodesStatus.size(); ++i) {
+            nodesStatus.set(i, isNodeAlive(i));
+        }
     }
 
     private void logRingAnalysis() {

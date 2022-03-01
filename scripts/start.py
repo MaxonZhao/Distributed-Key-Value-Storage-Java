@@ -21,6 +21,8 @@ def sigint_handler(signum, frame):
     print("Waiting servers to terminate...")
 signal.signal(signal.SIGINT, sigint_handler)
 
+print(f"Starting nodes")
+
 # start servers
 servers_subprocesses = []
 for i in range(first_index, last_index + 1):
@@ -33,7 +35,3 @@ for i in range(first_index, last_index + 1):
     servers_subprocesses.append(p)
 
 print(f"Nodes {first_index} to {last_index} are running, press Ctrl-C to terminate")
-
-# wait for termination
-for s in servers_subprocesses:
-    s.wait()

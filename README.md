@@ -5,24 +5,45 @@
 **Verification Code:** 3655741786 <br />
 
 
-### How to Build
-
+## How to Build
 ```shell
 ./gradlew build
 ```
 
-### How to Run
-The server runs on Port #16589.
+## How to Run
+1. Build
+2. The program requires a YAML file for initial group membership information
+3. Run command:
+#### Run One Instance
+```shell
+# servers.yml is your YAML file, N is the index of this server instance in servers.yml
+java -Xmx64m -Xms64m -jar A7.jar servers.yml N
+```
+
+### Run Multiple Instance in Batch
+```shell
+# the YAML filename must be servers.yml, first_index & last_index indicate the range of instances in servers.yml
+python3 scripts/start.py first_index last_index
+```
+
+### Deploy and Test
+The script should work on newly created AWS EC2 instances.
+`servers.yml` and `servers.txt` will be automatically generated.
+Required files are automatically copied to the server or client machine.
+
+OPERATION:
+- `servers`: Run multiple servers on `server_ip`
+- `single`: Run a single server on `client_ip:43100`
+- `client`: Run the test client on `client_ip`, the client jar should be in the project root directory
+- `fetch_logs`: Download logs from `server_ip`
 
 ```shell
-java "-Dsun.stdout.encoding=UTF-8" "-Dsun.err.encoding=UTF-8" -Xmx64m -Xms64m -jar A7.jar serverList.yml 1
+# In project root directory
+python3 scripts/deploy.py --key aws.pem --server_ip 35.84.193.206 --client_ip 25.45.193.111 OPERATION
+```
 
-serverList.yml is the filename of your .yml file, 1 refers to your own ip address listed in serverList.yml going downwards
-```
-or (no need to build)
-```shell
-./gradlew run
-```
+### Logs
+Server logs should be saved to `logs/server-N.log` where `N` is the index of the server.
 
 ### Design Choices
 - Make extensive use of `ByteBuffer` and `ByteString` to avoid copying byte arrays as much as possible.
@@ -37,3 +58,7 @@ There are some unit tests in `com.g10.cpen431.ByteUtilTest` for utility function
 - `Process.getCurrentProcessId()` is adapted from https://stackoverflow.com/a/43399977.
 - `ByteUtil.bytesToHexString(Iterable<Byte>)` is adapted from `StringUtils.byteArrayToHexString(byte[])`.
 - `src/main/resources/log4j2.xml` is modified from https://logging.apache.org/log4j/2.x/manual/configuration.html#AutomaticReconfiguration.
+
+## Immediate Termination Proof
+- The code that handles node termination is in `src/main/java/com/g10/cpen431.a7/KeyValueStorageServer` line 42.
+- Once the request is parsed to find that the request is a shutdown request, the system will exit immediately.

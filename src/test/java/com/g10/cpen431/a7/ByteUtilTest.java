@@ -1,7 +1,9 @@
 package com.g10.cpen431.a7;
 
+import ca.NetSysLab.ProtocolBuffers.Message;
 import com.g10.util.ByteUtil;
 import com.g10.util.NodeInfo;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -9,12 +11,12 @@ import com.g10.util.Hash;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import ca.NetSysLab.ProtocolBuffers.epidemic;
 
 class ByteUtilTest {
     @Test
@@ -71,5 +73,43 @@ class ByteUtilTest {
 
         assertEquals(false, for_test.hash(A).longValue()==for_test.hash(B).longValue());
     }
+
+    @Test
+    void check_proto(){
+        long val1 = 276763243;
+        long val2 = 123342431;
+        long val3 = 867456353;
+        byte[] ans= epidemic.Time_tag.newBuilder()
+                .addTimeTag(val1)
+                .addTimeTag(val2)
+                .build().toByteArray();
+        System.out.println(ans);
+
+        try {
+            long get_val1=epidemic.Time_tag.PARSER.parseFrom(ans, 0, ans.length).getTimeTag(0);
+            System.out.println(get_val1);
+
+            long get_val2=epidemic.Time_tag.PARSER.parseFrom(ans, 0, ans.length).getTimeTag(1);
+            System.out.println(get_val2);
+
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void check_seperate_equal() {
+        Hash for_test = new Hash();
+
+        final double longRange = ((double) Long.MAX_VALUE - Long.MIN_VALUE);
+        long range = (long) (longRange/20);
+
+        ArrayList<Long> answer = new ArrayList<>();
+        answer = for_test.set_node_num(20);
+
+        assertEquals(range, answer.get(1) - answer.get(0));
+    }
+
+
 
 }
