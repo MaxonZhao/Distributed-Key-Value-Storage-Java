@@ -77,11 +77,11 @@ public class TimeStampCommunication {
                 }
             }
             if (numOfAliveNodes <= 1) {
-                logger.trace("Send thread: Only {} nodes alive", numOfAliveNodes);
+                logger.info("Send thread: Only {} nodes alive", numOfAliveNodes);
                 return;
             }
 
-            while (numOfAliveNodesSelected < Math.min(numOfAliveNodes, numOfNodesToSend)) {
+            while (numOfAliveNodesSelected < Math.min(numOfAliveNodes - 1, numOfNodesToSend)) {
 
                 int index = rand.nextInt(upperbound);
                 if (hashCircle.isAlive(index) && index != this.myNodeID) {
