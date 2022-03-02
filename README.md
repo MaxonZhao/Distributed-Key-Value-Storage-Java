@@ -57,7 +57,7 @@ There are some unit tests in `com.g10.cpen431.ByteUtilTest` for utility function
 - Files in the package `com.matei.eece411.util` and the folder `src/main/proto` are provided by the course instructor.
 - `Process.getCurrentProcessId()` is adapted from https://stackoverflow.com/a/43399977.
 - `ByteUtil.bytesToHexString(Iterable<Byte>)` is adapted from `StringUtils.byteArrayToHexString(byte[])`.
-- `src/main/resources/log4j2.xml` is modified from https://logging.apache.org/log4j/2.x/manual/configuration.html#AutomaticReconfiguration.
+- `com.g10.util.Hash.hash` is based on https://www.cnblogs.com/hd-zg/p/5917758.html.
 
 ## Immediate Termination Proof
 - The code that handles node termination is in `src/main/java/com/g10/cpen431.a7/KeyValueStorageServer` line 42.

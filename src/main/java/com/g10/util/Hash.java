@@ -26,6 +26,12 @@ public class Hash {
         return node_hash_list;
     }
 
+    /**
+     * Based on https://www.cnblogs.com/hd-zg/p/5917758.html
+     *
+     * @param key
+     * @return
+     */
     public static Long hash(byte[] key) {
         ByteBuffer byte_buf = ByteBuffer.wrap(key);
 
