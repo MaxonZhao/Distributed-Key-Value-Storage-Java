@@ -1,0 +1,6 @@
+option java_package = "ca.NetSysLab.ProtocolBuffers";
+option java_outer_classname = "Epidemic";
+
+message EpidemicInfo {
+  repeated fixed64 timeTag = 1;
+}

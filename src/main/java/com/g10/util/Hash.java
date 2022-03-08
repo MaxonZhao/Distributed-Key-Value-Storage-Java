@@ -8,23 +8,23 @@ public class Hash {
     public static int position = 47;
     public static long parameter = 0xc6a4a7935bd1e995L;
 
-    private static int node_num = 0;
-
-
-    public static ArrayList<Long> set_node_num(int node_num){
-        node_num = node_num;
-
-        final double longRange = ((double) Long.MAX_VALUE - Long.MIN_VALUE);
-        long range = (long) (longRange/node_num);
-
-        ArrayList<Long> node_hash_list = new ArrayList<>();
-
-        for(int i = 0; i < node_num; i++){
-            node_hash_list.add(Long.MIN_VALUE+(i*range));
-        }
-
-        return node_hash_list;
-    }
+//    private static int node_num = 0;
+//
+//
+//    public static ArrayList<Long> set_node_num(int node_num){
+//        node_num = node_num;
+//
+//        final double longRange = ((double) Long.MAX_VALUE - Long.MIN_VALUE);
+//        long range = (long) (longRange/node_num);
+//
+//        ArrayList<Long> node_hash_list = new ArrayList<>();
+//
+//        for(int i = 0; i < node_num; i++){
+//            node_hash_list.add(Long.MIN_VALUE+(i*range));
+//        }
+//
+//        return node_hash_list;
+//    }
 
     /**
      * Based on https://www.cnblogs.com/hd-zg/p/5917758.html
@@ -32,7 +32,7 @@ public class Hash {
      * @param key
      * @return
      */
-    public static Long hash(byte[] key) {
+    public static long hash(byte[] key) {
         ByteBuffer byte_buf = ByteBuffer.wrap(key);
 
         ByteOrder byteOrder = byte_buf.order();
@@ -59,7 +59,7 @@ public class Hash {
         h ^= h >>> position;
 
         byte_buf.order(byteOrder);
-        return Long.valueOf(h);
+        return h;
     }
 
 }

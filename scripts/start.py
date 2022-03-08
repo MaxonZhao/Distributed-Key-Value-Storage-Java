@@ -27,7 +27,7 @@ print(f"Starting nodes")
 servers_subprocesses = []
 for i in range(first_index, last_index + 1):
     jvmArgs = ["-Xmx64m", "-Xms64m"]
-    jar = "A7.jar"
+    jar = "A8.jar"
     cmdArgs = ["servers.yml", f"{i}"]
 
     commands = ["java"] + jvmArgs + ["-jar", jar] + cmdArgs

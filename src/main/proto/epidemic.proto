@@ -1,6 +1,0 @@
-option java_package = "ca.NetSysLab.ProtocolBuffers";
-option java_outer_classname = "epidemic";
-
-message Time_tag {
-  repeated fixed64 time_tag = 1;
-}

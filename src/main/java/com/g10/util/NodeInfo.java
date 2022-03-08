@@ -16,8 +16,8 @@ public class NodeInfo {
     private static final Logger logger = LogManager.getLogger(NodeInfo.class);
     private static List<InetSocketAddress> serverList;
     private static List<InetSocketAddress> epidemicProtocolList;
-    private static InetSocketAddress self;
-    private static int selfIndex;
+    private static InetSocketAddress localNode;
+    private static int localIndex;
 
     public static class ServerList {
         @JsonProperty
@@ -74,12 +74,12 @@ public class NodeInfo {
         }
 
         NodeInfo.serverList = nodes;
-        NodeInfo.selfIndex = selfIndex;
-        NodeInfo.self = nodes.get(selfIndex);
+        NodeInfo.localIndex = selfIndex;
+        NodeInfo.localNode = nodes.get(selfIndex);
 
         NodeInfo.epidemicProtocolList = epNodes;
         logger.info("Initial server list: count = {}, list: {}", NodeInfo.serverList.size(), NodeInfo.serverList);
-        logger.info("Current index: {}, socket address: {}", selfIndex, NodeInfo.self);
+        logger.info("Current index: {}, socket address: {}", selfIndex, NodeInfo.localNode);
     }
 
     public static List<InetSocketAddress> getServerList() {
@@ -91,10 +91,10 @@ public class NodeInfo {
     }
 
     public static InetSocketAddress getLocalNodeInfo() {
-        return self;
+        return localNode;
     }
 
-    public static int getSelfIndex() {
-        return selfIndex;
+    public static int getLocalIndex() {
+        return localIndex;
     }
 }

@@ -1,4 +1,4 @@
-# CPEN431 2022 A7
+# CPEN431 2022 A8
 
 ---
 **Group ID:** G10 <br />
@@ -17,7 +17,7 @@
 #### Run One Instance
 ```shell
 # servers.yml is your YAML file, N is the index of this server instance in servers.yml
-java -Xmx64m -Xms64m -jar A7.jar servers.yml N
+java -Xmx64m -Xms64m -jar A8.jar servers.yml N
 ```
 
 ### Run Multiple Instance in Batch

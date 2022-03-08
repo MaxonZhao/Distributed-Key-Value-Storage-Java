@@ -20,7 +20,7 @@ java {
     }
 }
 
-group = 'com.g10.cpen431.a7'
+group = 'com.g10.cpen431.a8'
 version = '0.0.1-SNAPSHOT'
 
 repositories {
@@ -43,7 +43,7 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass = 'com.g10.cpen431.a7.Server'
+    mainClass = 'com.g10.cpen431.a8.Server'
 
     applicationDefaultJvmArgs = ['-Xmx64m', '-Xms64m']
 }
