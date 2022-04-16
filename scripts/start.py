@@ -4,6 +4,7 @@ import subprocess
 import signal
 import sys
 
+jar = "A11.jar"
 
 if len(sys.argv) != 3:
     print("Usage: python3 start.py first_index last_index")
@@ -26,11 +27,7 @@ print(f"Starting nodes")
 # start servers
 servers_subprocesses = []
 for i in range(first_index, last_index + 1):
-    jvmArgs = ["-Xmx64m", "-Xms64m"]
-    jar = "A8.jar"
-    cmdArgs = ["servers.yml", f"{i}"]
-
-    commands = ["java"] + jvmArgs + ["-jar", jar] + cmdArgs
+    commands = ["java", "-Xmx512m", "-Xms512m", "-jar", jar, "servers.yml", f"{i}"]
     p = subprocess.Popen(commands, stdout=subprocess.DEVNULL)
     servers_subprocesses.append(p)
 

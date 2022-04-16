@@ -4,8 +4,9 @@ import argparse
 # Usage: In the project root directory
 
 # update the following variables for each assignment
-jar = "A8.jar" # jar file name
-client_jar = "a8_2022_eval_tests_v1.jar" # must be in the current dir
+jar = "A11.jar" # jar file name
+client_log = "A11.log"
+client_jar = "a11_2022_eval_tests_v3.jar" # must be in the current dir
 n_nodes = 40 # number of nodes
 
 # do not edit the following variables
@@ -16,9 +17,7 @@ servers_yml_local = "servers_local.yml"
 servers_txt = "servers.txt"
 start_py = "scripts/start.py" # script for starting multiple servers
 start_port = 20000
-epidemic_port = 40000
 single_port = 43100
-single_epidemic_port = 43101
 additional_pub_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCfxrmM7cpw0hRWnshggt/2XpQ/nVi/Olotia6pxK7Aacg1wt4yDdS8eZ3Lto4JsRiI+hUZZ2uyuZSy3zgtWai+mGu3TshKP1bz+wC7RHenZwgEXuPn2WuIofTTjFfGIq6uOPWc5D6v0We2bVlrXFbYvHP4J24QkH9vsAfkpL5UGa+l+PT+L3phgVeTPs/BxuhaBp6J+j9g+UVF86di7u01fTuevjKRojzJe9kBRFQ4t95XsL0QDXOIB2GD7PSblxaftVINmiPpeyJPGMyZWqDuXyhhF37rRgaq9gHnnuNo4SVrR+8lJbd14c+bgHCM/FSZI43vkynnBPX6XFSJN7qv cpen431_pop"
 
 
@@ -40,31 +39,32 @@ def run_command_on_server(command):
 def op_fetch_logs():
     download_folder_from_server("logs")
 
+def download_folder_from_client(folder):
+    os.system(f"scp -i {args.key} -r {username}@{args.client_ip}:/{work_dir}/{folder} ./")
+
+def op_fetch_logs_from_client():
+    download_folder_from_client(client_log)
+
 # Generate servers_local.yml
 def op_yml():
     with open(servers_yml, 'w') as yml_file:
-        yml_file.write("epidemicProtocolInfo:\n")
-        port = epidemic_port
-        for _ in range(n_nodes):
-            yml_file.write(f"  - IP: {args.server_ip}\n")
-            yml_file.write(f"    port: {port}\n")
-            port += 1
         yml_file.write("serverInfo:\n")
         port = start_port
         for _ in range(n_nodes):
-            yml_file.write(f"  - IP: {args.server_ip}\n")
-            yml_file.write(f"    port: {port}\n")
-            port += 1
+            yml_file.write(f"  - ip: {args.server_ip}\n")
+            yml_file.write(f"    serverPort: {port}\n")
+            yml_file.write(f"    rpcPort: {port + 1}\n")
+            yml_file.write(f"    tcpPort: {port + 2}\n")
+            port += 3
 
 # Generate servers_local.yml, which contains only 127.0.0.1:43100
 def op_yml_local():
     with open(servers_yml_local, 'w') as yml_file:
-        yml_file.write("epidemicProtocolInfo:\n")
-        yml_file.write(f"  - IP: 127.0.0.1\n")
-        yml_file.write(f"    port: {single_epidemic_port}\n")
         yml_file.write("serverInfo:\n")
-        yml_file.write(f"  - IP: 127.0.0.1\n")
-        yml_file.write(f"    port: {single_port}\n")
+        yml_file.write(f"  - ip: 127.0.0.1\n")
+        yml_file.write(f"    serverPort: {single_port}\n")
+        yml_file.write(f"    rpcPort: {single_port + 1}\n")
+        yml_file.write(f"    tcpPort: {single_port + 2}\n")
 
 # Generate servers.txt for the client
 def op_txt():
@@ -72,13 +72,15 @@ def op_txt():
         port = start_port
         for _ in range(n_nodes):
             txt_file.write(f"{args.server_ip}:{port}\n")
-            port += 1
+            port += 3
 
 def op_init():
     run_command_on_server("sudo apt update; sudo apt -y install openjdk-8-jre-headless net-tools;")
     run_command_on_server("ip a")
-    run_command_on_server("sudo tc qdisc add dev lo   root netem delay 5msec loss 2.5%")
-    run_command_on_server("sudo tc qdisc add dev ens5 root netem delay 5msec loss 2.5%")
+    run_command_on_server("sudo sysctl -w net.core.rmem_max=67108864")
+    run_command_on_server("sudo sysctl -w net.core.wmem_max=67108864")
+    run_command_on_server("sudo tc qdisc add dev lo   root netem delay 5msec loss 0.25%")
+    run_command_on_server("sudo tc qdisc add dev ens5 root netem delay 5msec loss 0.25%")
     run_command_on_server(f"echo '{additional_pub_key}' >> ~/.ssh/authorized_keys")
 
     run_command_on_client("sudo apt update; sudo apt -y install openjdk-8-jre-headless;")
@@ -106,13 +108,14 @@ def op_client():
     send_file_to_client(client_jar)
     run_command_on_client(f"java -jar {client_jar} -servers-list={servers_txt} -submit -secret=3655741786")
 
-op_map = {"init": op_init, "shutdown": op_shutdown, "servers": op_servers, "single": op_single, "client": op_client, "fetch_logs": op_fetch_logs}
+op_map = {"init": op_init, "shutdown": op_shutdown, "servers": op_servers, "single": op_single, "client": op_client, "server_log": op_fetch_logs, "client_log": op_fetch_logs_from_client}
 
 parser = argparse.ArgumentParser()
 parser.add_argument('op', nargs='?', choices=[*op_map])
 parser.add_argument('--key', type=str, required=True, metavar='ssh_key.pem')
 parser.add_argument('--server_ip', type=str, required=True, metavar='12.34.56.78')
 parser.add_argument('--client_ip', type=str, required=True, metavar='12.34.56.78')
+
 args = parser.parse_args()
 
 op_map[args.op]()

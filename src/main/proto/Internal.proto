@@ -1,0 +1,41 @@
+syntax = "proto3";
+import "KeyValue.proto";
+option java_multiple_files = true;
+option java_package = "com.g10.cpen431";
+
+enum RpcPayloadType {
+    UNKNOWN = 0;
+    MEMBERSHIP = 1;
+    ROUTING = 2;
+    PRIMARY = 3;
+    BACKUP = 4;
+}
+
+message MembershipMessage {
+    repeated fixed64 time_vector = 1;
+}
+
+message RoutingMessage {
+    bytes message_id = 1;
+    fixed32 client_ip = 2;
+    uint32 client_port = 3;
+    KeyValueRequest request = 4;
+    int64 timestamp = 5;
+}
+
+message KeyStoreMessage {
+    bytes messageID = 1;
+    uint32 command = 2;
+    bytes key = 3;
+    optional bytes value = 4;
+    optional int32 version = 5;
+    int64 timestamp = 6;
+}
+
+message RemapMessage {
+    bool primary = 1;
+    bytes key = 2;
+    optional bytes value = 3;
+    optional int32 version = 4;
+    int64 timestamp = 5;
+}

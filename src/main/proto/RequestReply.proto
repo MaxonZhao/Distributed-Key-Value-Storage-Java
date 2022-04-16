@@ -1,0 +1,11 @@
+syntax = "proto2";
+option java_multiple_files = true;
+option java_package = "ca.NetSysLab.ProtocolBuffers";
+
+message RequestReplyMessage {
+    required bytes messageID = 1;
+    required bytes payload = 2;
+    required fixed64 checkSum = 3;
+    optional fixed32 clientIP = 4 [default = 0];
+    optional uint32 clientPort = 5 [default = 0];
+}

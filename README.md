@@ -1,4 +1,4 @@
-# CPEN431 2022 A8
+# CPEN431 2022 A11
 
 ---
 **Group ID:** G10 <br />
@@ -17,7 +17,7 @@
 #### Run One Instance
 ```shell
 # servers.yml is your YAML file, N is the index of this server instance in servers.yml
-java -Xmx64m -Xms64m -jar A8.jar servers.yml N
+java -Xmx64m -Xms64m -jar A11.jar servers.yml N
 ```
 
 ### Run Multiple Instance in Batch
@@ -31,11 +31,12 @@ The script should work on newly created AWS EC2 instances.
 `servers.yml` and `servers.txt` will be automatically generated.
 Required files are automatically copied to the server or client machine.
 
-OPERATION:
+*OPERATION*:
 - `servers`: Run multiple servers on `server_ip`
 - `single`: Run a single server on `client_ip:43100`
 - `client`: Run the test client on `client_ip`, the client jar should be in the project root directory
-- `fetch_logs`: Download logs from `server_ip`
+- `server_log`: Download server logs from `server_ip`
+- `client_log`: Download the client log from `client_ip`
 
 ```shell
 # In project root directory
@@ -43,22 +44,22 @@ python3 scripts/deploy.py --key aws.pem --server_ip 35.84.193.206 --client_ip 25
 ```
 
 ### Logs
-Server logs should be saved to `logs/server-N.log` where `N` is the index of the server.
+Server logs are saved to `logs/server-N.log` where `N` is the index of the server.
 
-### Design Choices
+### Design Choices (TODO)
 - Make extensive use of `ByteBuffer` and `ByteString` to avoid copying byte arrays as much as possible.
 - Clear separation between layers with interface `RequestReplyApplication` and class `NotificationCenter`.
 - Avoid caching replies for idempotent request without breaking layering.
 
 ### Additional Tests
-There are some unit tests in `com.g10.cpen431.ByteUtilTest` for utility functions.
+There are some unit tests in `src/test/java`.
 
 ### Source
 - Files in the package `com.matei.eece411.util` and the folder `src/main/proto` are provided by the course instructor.
 - `Process.getCurrentProcessId()` is adapted from https://stackoverflow.com/a/43399977.
 - `ByteUtil.bytesToHexString(Iterable<Byte>)` is adapted from `StringUtils.byteArrayToHexString(byte[])`.
-- `com.g10.util.Hash.hash` is based on https://www.cnblogs.com/hd-zg/p/5917758.html.
+- `com.g10.cpen431.a11.membership.Hash.hash` is based on https://www.cnblogs.com/hd-zg/p/5917758.html.
 
 ## Immediate Termination Proof
-- The code that handles node termination is in `src/main/java/com/g10/cpen431.a7/KeyValueStorageServer` line 42.
+- The code that handles node termination is in `src/main/java/com/g10/cpen431/a11/KeyValueStorageServer.java` line 39.
 - Once the request is parsed to find that the request is a shutdown request, the system will exit immediately.

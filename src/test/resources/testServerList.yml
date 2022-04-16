@@ -1,14 +1,7 @@
-epidemicProtocolInfo:
-  - IP: 192.168.0.0
-    port: 12345
 serverInfo:
-  - IP: 192.168.0.1
-    port: 1
-  - IP: 192.168.0.2
-    port: 2
-  - IP: 192.168.0.3
-    port: 3
-  - IP: 192.168.0.4
-    port: 4
-  - IP: 192.168.0.5
-    port: 5
+  - ip: 192.168.0.1
+    serverPort: 20000
+    rpcPort: 20001
+  - ip: 192.168.0.2
+    serverPort: 20003
+    rpcPort: 20004

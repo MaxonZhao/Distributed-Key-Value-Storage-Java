@@ -18,15 +18,6 @@ public class MemoryManager {
         memoryStressObservers.add(action);
     }
 
-    public static void guardMemoryLimit() {
-        long maxMemory = Runtime.getRuntime().maxMemory();
-        if (maxMemory > MAX_MEMORY) {
-            logger.fatal("Max Memory exceeded threshold: {} B, actual: {} B, " +
-                    "requires argument -Xmx64m and -Xms64m", MAX_MEMORY, maxMemory);
-            System.exit(1);
-        }
-    }
-
     public static boolean checkMemoryStress() {
         if (runtime.freeMemory() >= MIN_HEAP_FREE) {
             return false;

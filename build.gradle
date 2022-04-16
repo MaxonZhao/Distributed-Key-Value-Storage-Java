@@ -5,13 +5,13 @@
  * For more details take a look at the 'Building Java & JVM projects' chapter in the Gradle
  * User Manual available at https://docs.gradle.org/7.1/userguide/building_java_projects.html
  */
-import org.gradle.internal.os.OperatingSystem
 
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
     id 'idea'
     id "com.google.protobuf" version "0.8.18"
+    id "io.freefair.lombok" version "6.4.1"
 }
 
 java {
@@ -20,7 +20,7 @@ java {
     }
 }
 
-group = 'com.g10.cpen431.a8'
+group = 'com.g10.cpen431.a11'
 version = '0.0.1-SNAPSHOT'
 
 repositories {
@@ -29,21 +29,20 @@ repositories {
 }
 
 dependencies {
-    implementation group: 'com.google.protobuf', name: 'protobuf-java', version: '2.6.1'
+    implementation group: 'com.google.protobuf', name: 'protobuf-java', version: '3.19.4'
     implementation group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
-
     implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.17.1'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.17.1'
-
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2'
+    
     // Use JUnit Jupiter for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.1'
 }
 
 application {
     // Define the main class for the application.
-    mainClass = 'com.g10.cpen431.a8.Server'
+    mainClass = 'com.g10.cpen431.a11.Server'
 
     applicationDefaultJvmArgs = ['-Xmx64m', '-Xms64m']
 }
@@ -51,14 +50,8 @@ application {
 protobuf {
     /* Configure the protoc executable */
     protoc {
-        /* Support for Apple Silicon */
-        def suffix = ''
-        if (OperatingSystem.current().isMacOsX() && System.getProperty("os.arch") == "aarch64") {
-            suffix = ':osx-x86_64'
-        }
-
         /* Download from repositories */
-        artifact = 'com.google.protobuf:protoc:2.6.1' + suffix
+        artifact = 'com.google.protobuf:protoc:3.19.4'
     }
 }
 
