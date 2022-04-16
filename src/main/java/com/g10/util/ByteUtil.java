@@ -1,11 +1,9 @@
 package com.g10.util;
 
-import com.google.common.primitives.Bytes;
 import com.matei.eece411.util.ByteOrder;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.List;
 import java.util.zip.CRC32;
 
 public class ByteUtil {
@@ -92,9 +90,5 @@ public class ByteUtil {
         byte[] result = new byte[bb.remaining()];
         bb.get(result);
         return result;
-    }
-
-    public static List<Byte> copyToList(ByteBuffer bb) {
-        return Bytes.asList(copyToByteArray(bb));
     }
 }

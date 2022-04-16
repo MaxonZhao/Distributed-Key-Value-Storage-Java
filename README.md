@@ -1,4 +1,4 @@
-# CPEN431 2022 A11
+# CPEN431 2022 A12
 
 ---
 **Group ID:** G10 <br />
@@ -17,7 +17,7 @@
 #### Run One Instance
 ```shell
 # servers.yml is your YAML file, N is the index of this server instance in servers.yml
-java -Xmx64m -Xms64m -jar A11.jar servers.yml N
+java -Xmx64m -Xms64m -jar A12.jar servers.yml N
 ```
 
 ### Run Multiple Instance in Batch
@@ -32,6 +32,7 @@ The script should work on newly created AWS EC2 instances.
 Required files are automatically copied to the server or client machine.
 
 *OPERATION*:
+- `init`: Initialize the server machine and client machine
 - `servers`: Run multiple servers on `server_ip`
 - `single`: Run a single server on `client_ip:43100`
 - `client`: Run the test client on `client_ip`, the client jar should be in the project root directory
@@ -40,8 +41,11 @@ Required files are automatically copied to the server or client machine.
 
 ```shell
 # In project root directory
-python3 scripts/deploy.py --key aws.pem --server_ip 35.84.193.206 --client_ip 25.45.193.111 OPERATION
+python3 scripts/deploy.py --key aws.pem --server_public_ip 35.84.193.206 --server_private_ip 172.31.18.84 --client_ip 25.45.193.111 OPERATION
 ```
+`--server_private_ip` is the private address of the server machine. Using this address is much more efficient than the 
+public address for the communication between nodes.
+
 
 ### Logs
 Server logs are saved to `logs/server-N.log` where `N` is the index of the server.
@@ -55,11 +59,7 @@ Server logs are saved to `logs/server-N.log` where `N` is the index of the serve
 There are some unit tests in `src/test/java`.
 
 ### Source
-- Files in the package `com.matei.eece411.util` and the folder `src/main/proto` are provided by the course instructor.
+- Files in the package `com.matei.eece411.util` are provided by the course instructor.
 - `Process.getCurrentProcessId()` is adapted from https://stackoverflow.com/a/43399977.
 - `ByteUtil.bytesToHexString(Iterable<Byte>)` is adapted from `StringUtils.byteArrayToHexString(byte[])`.
-- `com.g10.cpen431.a11.membership.Hash.hash` is based on https://www.cnblogs.com/hd-zg/p/5917758.html.
-
-## Immediate Termination Proof
-- The code that handles node termination is in `src/main/java/com/g10/cpen431/a11/KeyValueStorageServer.java` line 39.
-- Once the request is parsed to find that the request is a shutdown request, the system will exit immediately.
+- `com.g10.cpen431.a12.membership.Hash.hash` is based on https://www.cnblogs.com/hd-zg/p/5917758.html.

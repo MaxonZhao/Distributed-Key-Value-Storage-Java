@@ -4,7 +4,7 @@ import argparse
 # Usage: In the project root directory
 
 # update the following variables for each assignment
-jar = "A11.jar" # jar file name
+jar = "A12.jar" # jar file name
 client_log = "A11.log"
 client_jar = "a11_2022_eval_tests_v3.jar" # must be in the current dir
 n_nodes = 40 # number of nodes
@@ -22,19 +22,19 @@ additional_pub_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCfxrmM7cpw0hRWnshggt
 
 
 def send_file_to_server(file):
-    os.system(f"scp -i {args.key} {file} {username}@{args.server_ip}:{work_dir}/")
+    os.system(f"scp -i {args.key} {file} {username}@{args.server_public_ip}:{work_dir}/")
 
 def send_file_to_client(file):
     os.system(f"scp -i {args.key} {file} {username}@{args.client_ip}:{work_dir}/")
 
 def download_folder_from_server(folder):
-    os.system(f"scp -i {args.key} -r {username}@{args.server_ip}:{work_dir}/{folder} ./")
+    os.system(f"scp -i {args.key} -r {username}@{args.server_public_ip}:{work_dir}/{folder} ./")
 
 def run_command_on_client(command):
     os.system(f"ssh -i {args.key} {username}@{args.client_ip} \"{command}\"")
 
 def run_command_on_server(command):
-    os.system(f"ssh -i {args.key} {username}@{args.server_ip} \"{command}\"")
+    os.system(f"ssh -i {args.key} {username}@{args.server_public_ip} \"{command}\"")
 
 def op_fetch_logs():
     download_folder_from_server("logs")
@@ -51,9 +51,9 @@ def op_yml():
         yml_file.write("serverInfo:\n")
         port = start_port
         for _ in range(n_nodes):
-            yml_file.write(f"  - ip: {args.server_ip}\n")
+            yml_file.write(f"  - ip: {args.server_private_ip}\n")
             yml_file.write(f"    serverPort: {port}\n")
-            yml_file.write(f"    rpcPort: {port + 1}\n")
+            yml_file.write(f"    udpPort: {port + 1}\n")
             yml_file.write(f"    tcpPort: {port + 2}\n")
             port += 3
 
@@ -63,7 +63,7 @@ def op_yml_local():
         yml_file.write("serverInfo:\n")
         yml_file.write(f"  - ip: 127.0.0.1\n")
         yml_file.write(f"    serverPort: {single_port}\n")
-        yml_file.write(f"    rpcPort: {single_port + 1}\n")
+        yml_file.write(f"    udpPort: {single_port + 1}\n")
         yml_file.write(f"    tcpPort: {single_port + 2}\n")
 
 # Generate servers.txt for the client
@@ -71,7 +71,7 @@ def op_txt():
     with open(servers_txt, 'w') as txt_file:
         port = start_port
         for _ in range(n_nodes):
-            txt_file.write(f"{args.server_ip}:{port}\n")
+            txt_file.write(f"{args.server_public_ip}:{port}\n")
             port += 3
 
 def op_init():
@@ -113,7 +113,8 @@ op_map = {"init": op_init, "shutdown": op_shutdown, "servers": op_servers, "sing
 parser = argparse.ArgumentParser()
 parser.add_argument('op', nargs='?', choices=[*op_map])
 parser.add_argument('--key', type=str, required=True, metavar='ssh_key.pem')
-parser.add_argument('--server_ip', type=str, required=True, metavar='12.34.56.78')
+parser.add_argument('--server_public_ip', type=str, required=True, metavar='12.34.56.78')
+parser.add_argument('--server_private_ip', type=str, required=True, metavar='172.31.18.84')
 parser.add_argument('--client_ip', type=str, required=True, metavar='12.34.56.78')
 
 args = parser.parse_args()

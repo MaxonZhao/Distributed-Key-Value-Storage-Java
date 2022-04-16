@@ -1,7 +1,9 @@
 serverInfo:
   - ip: 192.168.0.1
     serverPort: 20000
-    rpcPort: 20001
+    udpPort: 20001
+    tcpPort: 20002
   - ip: 192.168.0.2
     serverPort: 20003
-    rpcPort: 20004
+    udpPort: 20004
+    tcpPort: 20005

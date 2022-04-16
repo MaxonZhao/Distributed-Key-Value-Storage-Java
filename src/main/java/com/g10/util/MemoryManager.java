@@ -8,8 +8,7 @@ import java.util.List;
 
 public class MemoryManager {
     private static final Logger logger = LogManager.getLogger(MemoryManager.class);
-    private static final long MIN_HEAP_FREE = (long) (8.0 * 1024 * 1024); /* 8 MB */
-    private static final long MAX_MEMORY = 64 * 1024 * 1024; /* 64 MB */
+    private static final long MIN_HEAP_FREE = (long) (2.5 * 1024 * 1024); /* 2.5 MB */
 
     private static final Runtime runtime = Runtime.getRuntime();
     private static final List<Runnable> memoryStressObservers = new ArrayList<>();

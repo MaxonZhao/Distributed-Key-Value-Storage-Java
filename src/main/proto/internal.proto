@@ -1,0 +1,42 @@
+syntax = "proto3";
+import "external.proto";
+option java_multiple_files = true;
+option java_package = "com.g10.cpen431";
+
+message RpcMessage {
+    oneof payload {
+        MembershipMessage membership = 1;
+        RoutingMessage routing = 2;
+        BackupMessage backup = 3;
+        RemapMessage remap = 4;
+    }
+}
+
+message MembershipMessage {
+    repeated fixed64 time_vector = 1;
+}
+
+message RoutingMessage {
+    bytes message_id = 1;
+    fixed32 client_ip = 2;
+    uint32 client_port = 3;
+    KeyValueRequest request = 4;
+    int64 timestamp = 5;
+}
+
+message BackupMessage {
+    bytes message_id = 1;
+    uint32 command = 2;
+    bytes key = 3;
+    optional bytes value = 4;
+    optional int32 version = 5;
+    int64 timestamp = 6;
+}
+
+message RemapMessage {
+    bool is_primary = 1;
+    bytes key = 2;
+    optional bytes value = 3;
+    optional int32 version = 4;
+    int64 timestamp = 5;
+}

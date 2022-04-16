@@ -1,0 +1,25 @@
+syntax = "proto2";
+option java_multiple_files = true;
+option java_package = "ca.NetSysLab.ProtocolBuffers";
+
+message RequestReplyMessage {
+    required bytes messageID = 1;
+    required bytes payload = 2;
+    required fixed64 checkSum = 3;
+}
+
+message KeyValueRequest {
+    required uint32 command = 1;
+    optional bytes key = 2;
+    optional bytes value = 3;
+    optional int32 version = 4;
+}
+
+message KeyValueResponse {
+    required uint32 errCode = 1;
+    optional bytes value = 2;
+    optional int32 pid = 3;
+    optional int32 version = 4;
+    optional int32 overloadWaitTime = 5;
+    optional int32 membershipCount = 6;
+}

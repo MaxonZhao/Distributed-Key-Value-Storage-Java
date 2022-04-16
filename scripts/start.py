@@ -4,7 +4,7 @@ import subprocess
 import signal
 import sys
 
-jar = "A11.jar"
+jar = "A12.jar"
 
 if len(sys.argv) != 3:
     print("Usage: python3 start.py first_index last_index")
