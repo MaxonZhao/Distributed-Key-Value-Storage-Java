@@ -11,3 +11,6 @@ servers.txt
 servers.yml
 servers_local.yml
 logs/
+
+/*.pem
+/*_eval_tests*.jar
