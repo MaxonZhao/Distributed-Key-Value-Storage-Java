@@ -67,8 +67,9 @@ public class MembershipService {
         replicaGroupSubscribers.add(eventHandler);
     }
 
-    static synchronized void notifyReplicaGroupUpdate(ReplicaGroup primaryReplicaGroup) {
-        replicaGroupSubscribers.forEach(c -> c.accept(primaryReplicaGroup));
+    static synchronized void notifyReplicaGroupUpdate(ReplicaGroup newGroup) {
+        logger.info("New replica Group: {}", newGroup);
+        replicaGroupSubscribers.forEach(c -> c.accept(newGroup));
     }
 
     public static int getNumOfAliveNodes() {

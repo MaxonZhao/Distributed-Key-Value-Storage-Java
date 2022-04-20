@@ -70,8 +70,7 @@ public class SystemUtil {
     }
 
     public static long generateTimestampVersion() {
-        long upper = System.currentTimeMillis() << 8;
-        long lower = RAND.nextInt() & 0xFFL;
-        return upper | lower;
+        /* TODO: Conflict when two clients put the same key at the same time */
+        return System.currentTimeMillis();
     }
 }

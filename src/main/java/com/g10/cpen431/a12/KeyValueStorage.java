@@ -40,7 +40,7 @@ public class KeyValueStorage implements Iterable<Map.Entry<ByteList, KeyValueSto
         }
         ByteList mapKey = new ByteList(key);
         Value oldValue = map.get(mapKey);
-        if (oldValue != null && oldValue.timestamp >= timestamp) {
+        if (oldValue != null && oldValue.timestamp > timestamp) {
             return false;
         }
         Value newValue = new Value(ByteUtil.copyToByteArray(value), version, timestamp);
