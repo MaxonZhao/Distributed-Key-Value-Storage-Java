@@ -4,22 +4,17 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HashTest {
     @Test
-    void check_hash_with_same_key() {
+    void testSameKey() {
         byte[] A = ("AAAAA").getBytes(StandardCharsets.UTF_8);
-        System.out.println(Hash.hash(A));
-        System.out.println(Hash.hash(A));
-        boolean answer = Hash.hash(A) == Hash.hash(A);
-        System.out.println(answer);
-        assertTrue(answer);
+        assertEquals(Hash.hash(A), Hash.hash(A));
     }
 
     @Test
-    void check_hash_with_different_key() {
+    void testDifferentKey() {
         byte[] A = "AAAAA".getBytes(StandardCharsets.UTF_8);
         byte[] B = "BBBBB".getBytes(StandardCharsets.UTF_8);
 

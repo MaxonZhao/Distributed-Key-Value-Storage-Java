@@ -4,14 +4,12 @@ import com.g10.cpen431.MembershipMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ByteUtilTest {
     @Test
-    void longToBytesTest() {
+    void testLongToBytes() {
         byte[] buffer = new byte[8];
         ByteUtil.longToBytes(0x12FAF6AB78L, buffer, 0);
 
@@ -22,7 +20,7 @@ class ByteUtilTest {
     }
 
     @Test
-    void concatTest() {
+    void testConcat() {
         byte[] first = {1, 2, 3, 4};
         byte[] second = {5, 6, 7, 8};
 
@@ -40,33 +38,18 @@ class ByteUtilTest {
         assertEquals(1070237893, checksum);
     }
 
-//    @Test
-//    void checkNodeInfo() throws IOException {
-//        NodeInfo.ServerList a = NodeInfo.parseNodeInfo("src/test/resources/testServerList.yml");
-//        System.out.println(a.toString());
-//    }
-
     @Test
-    void check_proto() {
-        long val1 = 276763243;
-        long val2 = 123342431;
-        long val3 = 867456353;
+    void testMembershipMessage() throws InvalidProtocolBufferException {
+        long value1 = 276763243;
+        long value2 = 123342431;
         byte[] ans = MembershipMessage.newBuilder()
-                .addTimeVector(val1)
-                .addTimeVector(val2)
+                .addTimeVector(value1)
+                .addTimeVector(value2)
                 .build().toByteArray();
-        System.out.println(Arrays.toString(ans));
 
-        try {
-            long get_val1 = MembershipMessage.parser().parseFrom(ans, 0, ans.length).getTimeVector(0);
-            System.out.println(get_val1);
-
-            long get_val2 = MembershipMessage.parser().parseFrom(ans, 0, ans.length).getTimeVector(1);
-            System.out.println(get_val2);
-
-        } catch (InvalidProtocolBufferException e) {
-            e.printStackTrace();
-        }
+        long actualValue1 = MembershipMessage.parser().parseFrom(ans, 0, ans.length).getTimeVector(0);
+        long actualValue2 = MembershipMessage.parser().parseFrom(ans, 0, ans.length).getTimeVector(1);
+        assertEquals(value1, actualValue1);
+        assertEquals(value2, actualValue2);
     }
-
 }
