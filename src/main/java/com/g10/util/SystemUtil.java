@@ -70,7 +70,6 @@ public class SystemUtil {
     }
 
     public static long generateTimestampVersion() {
-        /* TODO: Conflict when two clients put the same key at the same time */
         return System.currentTimeMillis();
     }
 }

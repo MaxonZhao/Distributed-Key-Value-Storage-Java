@@ -14,9 +14,12 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 
+/**
+ * The ClientCommunicator is responsible for accepting requests from clients and sending replies.
+ */
 @Log4j2
 class ClientCommunicator {
-    private static final int MAX_PACKET_SIZE = 17 * 1024; /* 16KB */
+    private static final int MAX_PACKET_SIZE = 17 * 1024; /* 17KB */
     private static final int ID_SIZE = 16; /* 16B */
     private static final int MAX_PAYLOAD_SIZE = 16 * 1024; /* 16KB */
 
@@ -30,13 +33,28 @@ class ClientCommunicator {
         }
     }
 
-    void replyToClient(byte[] message, ClientAddress clientAddress)
-            throws IOException {
+    /**
+     * Send a message to the client.
+     *
+     * @param message       data to send
+     * @param clientAddress address of the client
+     * @throws IOException if an error occurs
+     */
+    void replyToClient(byte[] message, ClientAddress clientAddress) throws IOException {
         socket.send(clientAddress.newPacket(message));
     }
 
-    void replyToClient(ByteString messageId, ClientAddress clientAddress, KeyValueResponse response, boolean idempotent)
-            throws IOException {
+    /**
+     * Send a key-value response to the client
+     *
+     * @param messageId     ID of the message
+     * @param clientAddress address of the client
+     * @param response      response to send
+     * @param idempotent    whether this response should be cached
+     * @throws IOException if an error occurs
+     */
+    void replyToClient(ByteString messageId, ClientAddress clientAddress, KeyValueResponse response,
+                       boolean idempotent) throws IOException {
         byte[] message = constructClientMessage(messageId, response.toByteString()).toByteArray();
         replyToClient(message, clientAddress);
 
@@ -55,6 +73,8 @@ class ClientCommunicator {
                 log.warn(e);
                 continue;
             }
+
+            /* Parse */
             RequestReplyMessage message = parseClientPacket(packet.getData(), packet.getOffset(), packet.getLength());
             if (message == null) {
                 continue;

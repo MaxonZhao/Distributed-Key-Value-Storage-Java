@@ -11,6 +11,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * A service used by other services for communication between server nodes.
+ * <p>
+ * It uses a number, named handle, to identify the type of each message.
+ * Every {@link RpcMessage} includes a handle.
+ * </p>
+ * <p>
+ * To send a message, use {@link #sendMessageViaUdp(SocketAddress, RpcMessage)} or
+ * {@link #sendMessageViaTcp(SocketAddress, RpcMessage)}.
+ * </p>
+ * <p>
+ * Upon receiving a message, the {@link RpcService} extracts the handle in the massage and calls the appropriate
+ * handler function. To register a handler, use {@link #registerHandler(int, Consumer)}.
+ * </p>
+ */
 @Log4j2
 public class RpcService {
     private static final List<Consumer<RpcMessage>> handlers = new ArrayList<>();
@@ -22,6 +37,12 @@ public class RpcService {
         udp = new UdpCommunicator(udpPort, SystemUtil.concurrencyLevel());
     }
 
+    /**
+     * Register the handler for a specific handle (type of message). There can be only one handler for each handle.
+     *
+     * @param handle type of message
+     * @param messageHandler handler called when receiving messages
+     */
     public static void registerHandler(int handle, Consumer<RpcMessage> messageHandler) {
         synchronized (handlers) {
             while (handle >= handlers.size()) {
@@ -32,6 +53,12 @@ public class RpcService {
         }
     }
 
+    /**
+     * Send a message to the target host via UDP.
+     *
+     * @param target  the target address
+     * @param message the message to send
+     */
     public static void sendMessageViaUdp(SocketAddress target, RpcMessage message) {
         try {
             udp.sendMessage(target, message);
@@ -40,14 +67,30 @@ public class RpcService {
         }
     }
 
+    /**
+     * Send a message to the target host via TCP. Open a new connection if necessary. The connection will be kept
+     * alive for future use.
+     *
+     * @param target  address of the target host
+     * @param message the message to send
+     * @throws IOException if an I/O error occurs
+     */
     public static void sendMessageViaTcp(SocketAddress target, RpcMessage message) throws IOException {
         tcp.sendMessage(target, message);
     }
 
+    /**
+     * Close all tcp connections initiated by this {@link RpcService}.
+     */
     public static void closeAllTcpConnections() {
         tcp.closeAll();
     }
 
+    /**
+     * Handle a received message
+     *
+     * @param message the message received
+     */
     static void receiveMessage(RpcMessage message) {
         try {
             int handle = message.getPayloadCase().getNumber();

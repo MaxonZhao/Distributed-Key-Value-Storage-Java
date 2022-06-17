@@ -26,7 +26,7 @@ class CoordinatorCommunication {
     }
 
     /**
-     * Route a client request to another coordinator
+     * Route a client request to the coordinator in another node
      *
      * @param target        target coordinator
      * @param messageId     message ID of the request

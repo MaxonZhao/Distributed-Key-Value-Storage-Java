@@ -10,6 +10,9 @@ import com.google.protobuf.ByteString;
 import com.matei.eece411.util.StringUtils;
 import lombok.extern.log4j.Log4j2;
 
+/**
+ * The ReplicaService listens to messages sent by primary nodes and stores replicated key-value pairs.
+ */
 @Log4j2
 public class ReplicaService {
     private static final KeyValueStorage storage = KeyValueStorage.getInstance();

@@ -8,8 +8,15 @@ import lombok.extern.log4j.Log4j2;
 import java.net.SocketException;
 
 /**
- * Front end to accept client requests, // tag new values with timestamp and random number
- * Send commands to primary
+ * <p>
+ * The Coordinator Service is the front end to accept, interpret, and reply to client requests.
+ * If a request needs to be routed to another node, the local coordinator will forward it to the
+ * coordinator at the target node.
+ * </p>
+ * <p>
+ * The Coordinator Service is also responsible for caching the replies for at least 1 second.
+ * This is to achieve the at-most-once semantic.
+ * </p>
  */
 @Log4j2
 public class CoordinatorService {
@@ -23,6 +30,7 @@ public class CoordinatorService {
         Context.init(communicator);
         CoordinatorCommunication.registerReceiveHandler();
 
+        /* Perform addition clean-ups when available memory is low */
         MemoryManager.subscribeMemoryStress(CoordinatorHandlers.cache::cleanUp);
     }
 }

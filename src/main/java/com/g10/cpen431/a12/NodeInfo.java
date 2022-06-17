@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * The NodeInfo stores the IP addresses and port numbers of all server nodes
+ */
 public class NodeInfo {
     private static final Logger logger = LogManager.getLogger(NodeInfo.class);
     private static List<PhysicalNode> physicalNodes;

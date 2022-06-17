@@ -13,9 +13,12 @@ import com.google.protobuf.UnsafeByteOperations;
 import com.matei.eece411.util.StringUtils;
 import lombok.extern.log4j.Log4j2;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
-
+/**
+ * The PrimaryService serves requests to the primary node in the primary-backup protocol.
+ */
 @Log4j2
 public class PrimaryService {
     private static final KeyValueStorage storage = KeyValueStorage.getInstance();
@@ -24,10 +27,25 @@ public class PrimaryService {
         log.info("Initial primaryGroup: {}", MembershipService.getReplicaGroup());
     }
 
+    /**
+     * Serve a GET request.
+     *
+     * @param key the requested key
+     * @return if the key exists, return the associated value. Otherwise, return null.
+     */
+    @Nullable
     public static KeyValueStorage.Value get(byte[] key) {
         return storage.get(key);
     }
 
+    /**
+     * Serve a PUT request. This method also forwards the request to the replicas.
+     *
+     * @param key the key
+     * @param value the value associated with the key
+     * @param version the version of the key-value pair
+     * @param timestamp the timestamp associated with the value
+     */
     public static void put(byte[] key, ByteString value, int version, long timestamp) {
         log.trace("Primary PUT key={}", () -> StringUtils.byteArrayToHexString(key));
         storage.put(key, value.asReadOnlyByteBuffer(), version, timestamp);
@@ -44,6 +62,12 @@ public class PrimaryService {
         }
     }
 
+    /**
+     * Serve a REMOVE request. This method also forwards the request to the replicas.
+     *
+     * @param key the key to remove
+     * @return true the remove request is successfully executed, false if the key does not exist.
+     */
     public static boolean remove(byte[] key) {
         log.trace("Primary REMOVE key={}", () -> StringUtils.byteArrayToHexString(key));
         boolean success = storage.remove(key);

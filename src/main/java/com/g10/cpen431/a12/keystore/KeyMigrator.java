@@ -15,16 +15,27 @@ import lombok.val;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+/**
+ * The KeyMigrator migrates keys between nodes in failure and recovery scenarios.
+ */
 @Log4j2
 public class KeyMigrator {
 
-    public static void init() throws IOException {
+    public static void init() {
         RpcService.registerHandler(RpcMessage.REMAP_FIELD_NUMBER, KeyMigrator::handleMessage);
+
+        /* Migrate whenever the predecessor or the replication group has changed */
         MembershipService.subscribePredecessorUpdate((x) -> remap(MembershipService.getReplicaGroup()));
         MembershipService.subscribeReplicaGroupUpdate((x) -> remap(MembershipService.getReplicaGroup()));
     }
 
-    static synchronized void remap(ReplicaGroup primaryGroup) {
+    /**
+     * Iterate over all key-value pairs in the storage,
+     * and send each of them to the KeyMigrator in its primary node.
+     *
+     * @param primaryGroup the replication group in which the current node is primary
+     */
+    private static synchronized void remap(ReplicaGroup primaryGroup) {
         log.info("remapping");
 
         int countKey = 0, countMessage = 0;
@@ -52,6 +63,8 @@ public class KeyMigrator {
             countKey += 1;
         }
         log.info("remapped {} keys, sent {} messages", countKey, countMessage);
+
+        /* Clean up TCP connections */
         RpcService.closeAllTcpConnections();
     }
 

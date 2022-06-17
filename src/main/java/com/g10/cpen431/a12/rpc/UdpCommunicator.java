@@ -11,6 +11,9 @@ import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 
+/**
+ * Sending and Receiving messages via UDP
+ */
 @Log4j2
 class UdpCommunicator {
     private static final int MAX_PACKET_SIZE = 32 * 1024; /* 32KB */
@@ -24,6 +27,13 @@ class UdpCommunicator {
         }
     }
 
+    /**
+     * Construct a UDP packet containing the message and send it to the target address.
+     *
+     * @param target the target address
+     * @param message the message to send
+     * @throws IOException if an I/O error occurs
+     */
     void sendMessage(SocketAddress target, RpcMessage message) throws IOException {
         byte[] request = message.toByteArray();
         DatagramPacket packet = new DatagramPacket(request, request.length, target);

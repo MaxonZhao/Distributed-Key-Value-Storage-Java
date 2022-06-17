@@ -12,6 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Sending and Receiving messages via TCP
+ */
 @Log4j2
 class TcpCommunicator {
     private static final int TCP_BUFFER_SIZE = 64 * 1024 * 1024;
@@ -31,6 +34,9 @@ class TcpCommunicator {
         run();
     }
 
+    /**
+     * See {@link RpcService#sendMessageViaTcp(SocketAddress, RpcMessage)}.
+     */
     void sendMessage(SocketAddress target, RpcMessage message) throws IOException {
         Socket socket = null;
         try {
@@ -44,6 +50,9 @@ class TcpCommunicator {
         }
     }
 
+    /**
+     * Close all client sockets.
+     */
     void closeAll() {
         for (SocketAddress address : localClients.keySet()) {
             Socket socket = localClients.remove(address);
@@ -54,6 +63,13 @@ class TcpCommunicator {
         }
     }
 
+    /**
+     * Get a TCP connection to the remote host. Open a new one if necessary.
+     *
+     * @param remoteAddress address of the target
+     * @return a connected socket
+     * @throws IOException if an I/O error occurs
+     */
     private Socket getConnectionToRemoteServer(SocketAddress remoteAddress) throws IOException {
         Socket connection = localClients.get(remoteAddress);
         if (connection == null || connection.isClosed()) {

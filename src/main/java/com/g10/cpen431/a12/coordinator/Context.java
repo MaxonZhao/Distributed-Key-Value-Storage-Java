@@ -12,6 +12,9 @@ import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
 
+/**
+ * Holds information relevant to the current request/reply.
+ */
 @Log4j2
 class Context {
     private static ClientCommunicator clientComm;
@@ -69,6 +72,12 @@ class Context {
         return versionTimestamp;
     }
 
+    /**
+     * Send a response to the client.
+     *
+     * @param response   the response
+     * @param idempotent true if this response does not need to be cached, false otherwise.
+     */
     void replyToClient(KeyValueResponse response, boolean idempotent) {
         try {
             clientComm.replyToClient(messageId, clientAddress, response, idempotent);
@@ -77,14 +86,23 @@ class Context {
         }
     }
 
+    /**
+     * Send an idempotent response to the client.
+     */
     void replyToClient(KeyValueResponse response) {
         replyToClient(response, true);
     }
 
+    /**
+     * Send an idempotent response to the client.
+     */
     void replyToClient(KeyValueResponse.Builder responseBuilder) {
         replyToClient(responseBuilder.build());
     }
 
+    /**
+     * Send a message to the client.
+     */
     void replyToClient(byte[] message) {
         try {
             clientComm.replyToClient(message, clientAddress);
@@ -93,6 +111,11 @@ class Context {
         }
     }
 
+    /**
+     * Route this request to another server node.
+     *
+     * @param target target server node
+     */
     void routeToNode(PhysicalNode target) {
         CoordinatorCommunication.sendRouting(target, messageId, clientAddress, kvRequest, versionTimestamp);
     }

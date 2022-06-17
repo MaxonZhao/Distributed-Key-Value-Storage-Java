@@ -24,6 +24,9 @@ import lombok.extern.log4j.Log4j2;
 import java.io.IOException;
 import java.time.Duration;
 
+/**
+ * A collection of static methods each handing a type of command.
+ */
 @Log4j2
 class CoordinatorHandlers {
     private static final Duration CACHE_TIMEOUT = Duration.ofSeconds(1);
@@ -31,13 +34,16 @@ class CoordinatorHandlers {
             .expireAfterWrite(CACHE_TIMEOUT)
             .concurrencyLevel(SystemUtil.concurrencyLevel())
             .build();
-    /* don't use max size of weight */ // TODO: explain
     /* NOTE: memory stress of cache handled in CoordinatorService */
 
+    /* Some common replies */
     private static final KeyValueResponse outOfMemoryReply = kvResponseBuilder(ErrCode.OUT_OF_SPACE).build();
     private static final KeyValueResponse internalFailureReply = kvResponseBuilder(ErrCode.INTERNAL_FAILURE).build();
     private static final KeyValueResponse successReply = kvResponseBuilder().build();
 
+    /**
+     * Entry point.
+     */
     static void handle(Context context) {
         try {
             context.parseRequestIfNeeded();
@@ -229,6 +235,7 @@ class CoordinatorHandlers {
         }
 
         boolean result = PrimaryService.remove(parameters.first);
+        /* FIXME: Incorrect result if multiple threads run this with the same key concurrently */
         if (result) {
             context.replyToClient(successReply, false);
         } else {

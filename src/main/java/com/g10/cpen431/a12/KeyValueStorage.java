@@ -6,12 +6,16 @@ import com.g10.util.TimerUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
+import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * A hash table storing all key-value pairs in the current node.
+ */
 @Log4j2
 public class KeyValueStorage implements Iterable<Map.Entry<ByteList, KeyValueStorage.Value>> {
     private static final KeyValueStorage instance = new KeyValueStorage();
@@ -34,12 +38,25 @@ public class KeyValueStorage implements Iterable<Map.Entry<ByteList, KeyValueSto
         return instance;
     }
 
+    /**
+     * Insert a key-value pair to the storage. Replace the old value only if the
+     * timestamp of the new value is greater than the timestamp of the old value.
+     * Race condition may occur if the user attempts to insert multiple values
+     * for the same key concurrently.
+     *
+     * @param key the key
+     * @param value the value to be associated with the key
+     * @param version version of the key-value pair
+     * @param timestamp the timestamp associated with the value
+     * @return true if the key-value pair is inserted, false otherwise
+     */
     public boolean put(byte[] key, ByteBuffer value, int version, long timestamp) {
         if (timestamp == 0) {
             throw new IllegalArgumentException("timestamp is 0");
         }
         ByteList mapKey = new ByteList(key);
         Value oldValue = map.get(mapKey);
+        /* Block values that are older than the current value */
         if (oldValue != null && oldValue.timestamp > timestamp) {
             return false;
         }
@@ -48,11 +65,24 @@ public class KeyValueStorage implements Iterable<Map.Entry<ByteList, KeyValueSto
         return true;
     }
 
+    /**
+     * Get the value associated with a key from the storage
+     *
+     * @param key the requested key
+     * @return if the key exists, return the associated value. Otherwise, return null.
+     */
+    @Nullable
     public Value get(byte[] key) {
         ByteList mapKey = new ByteList(key);
         return map.get(mapKey);
     }
 
+    /**
+     * Remove a key from the storage
+     *
+     * @param key the key to remove
+     * @return true if there was previously a mapping for key, false otherwise.
+     */
     public boolean remove(byte[] key) {
         ByteList mapKey = new ByteList(key);
         return map.remove(mapKey) != null;
