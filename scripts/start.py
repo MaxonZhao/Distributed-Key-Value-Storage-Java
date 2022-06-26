@@ -1,34 +1,63 @@
-# script for starting multiple server nodes at once
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Script for starting multiple server nodes on the current machine.
 
-import subprocess
-import signal
+Usage: python3 start.py path/to/jar path/to/servers.yml number_of_nodes
+"""
+
+
+from subprocess import Popen, DEVNULL
 import sys
+import functools
 
-jar = "A12.jar"
 
-if len(sys.argv) != 3:
-    print("Usage: python3 start.py first_index last_index")
+# Always flush
+print = functools.partial(print, flush=True)
+
+
+def run(jar, args):
+    """Create a new process to run the jar file"""
+    commands = ["java", "-Xmx512m", "-Xms512m", "-jar", jar] + args
+    return Popen(commands, stdin=DEVNULL, stdout=DEVNULL)
+
+
+def kill_processes(processes):
+    """Kill processes"""
+    print(f"Terminating server processes...")
+    for p in processes:
+        p.kill()
+
+
+def start_servers(jar, servers_yml, num_nodes):
+    """Start multiple nodes of the server"""
+    print(f"Starting server nodes")
+    processes = []
+    for i in range(num_nodes):
+        p = run(jar, [servers_yml, f"{i}"])
+        processes.append(p)
+    print(f"Started {num_nodes} nodes")
+    return processes
+
+
+if len(sys.argv) != 4:
+    print("Usage: python3 start.py path/to/jar path/to/servers.yml number_of_nodes")
     exit(1)
 
-# parse first_index and last_index
-first_index = int(sys.argv[1])
-last_index = int(sys.argv[2])
-if first_index > last_index or first_index < 0:
-    print("Invalid first_index or last_index")
-    exit(2)
+# Start server nodes
+server_processes = start_servers(sys.argv[1], sys.argv[2], int(sys.argv[3]))
 
-# capture Ctrl-C
-def sigint_handler(signum, frame):
-    print("Waiting servers to terminate...")
-signal.signal(signal.SIGINT, sigint_handler)
+# Wait for stop command
+while True:
+    user_input = input(f"Type \"stop\" to terminate server_processes: ")
+    if user_input == "stop":
+        break
 
-print(f"Starting nodes")
+# Terminate server processes
+kill_processes(server_processes)
 
-# start servers
-servers_subprocesses = []
-for i in range(first_index, last_index + 1):
-    commands = ["java", "-Xmx512m", "-Xms512m", "-jar", jar, "servers.yml", f"{i}"]
-    p = subprocess.Popen(commands, stdout=subprocess.DEVNULL)
-    servers_subprocesses.append(p)
-
-print(f"Nodes {first_index} to {last_index} are running, press Ctrl-C to terminate")
+# Wait for termination
+print("Waiting server processes to terminate...")
+for sp in server_processes:
+    sp.wait()
+print(f"Server processes terminated")
